@@ -45,6 +45,21 @@ export const BUILTIN_WORKER_PROXIES: string[] = [
 ];
 
 /**
+ * 用户私有 Worker 代理池（从 Cloudflare 部署的 9 个私有 Worker）
+ */
+export const PRIVATE_WORKER_PROXIES: string[] = [
+  'https://mp-proxy-00.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-01.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-02.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-03.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-04.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-05.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-06.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-07.myproxy3d45da21.workers.dev',
+  'https://mp-proxy-08.myproxy3d45da21.workers.dev',
+];
+
+/**
  * 从环境变量读取私有 Worker 列表
  * 格式: WORKER_PROXIES=https://proxy1.example.com,https://proxy2.example.com
  */
@@ -55,13 +70,17 @@ export function getPrivateWorkerProxies(): string[] {
 }
 
 /**
- * 获取所有可用的 Worker 代理（内置 + 私有）
+ * 获取所有可用的 Worker 代理（私有优先，内置公共备选）
  */
 export function getAllWorkerProxies(): string[] {
-  const privateProxies = getPrivateWorkerProxies();
-  // 如果配置了私有代理，优先使用私有代理，否则使用内置公共代理
-  if (privateProxies.length > 0) {
-    return privateProxies;
+  const envProxies = getPrivateWorkerProxies();
+  // 优先级: 环境变量配置 > 内置私有代理 > 内置公共代理
+  if (envProxies.length > 0) {
+    return envProxies;
+  }
+  // 如果有内置私有代理，优先使用私有代理
+  if (PRIVATE_WORKER_PROXIES.length > 0) {
+    return PRIVATE_WORKER_PROXIES;
   }
   return BUILTIN_WORKER_PROXIES;
 }
