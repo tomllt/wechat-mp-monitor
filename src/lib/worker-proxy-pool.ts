@@ -28,6 +28,8 @@ interface ProxyStats {
  * - 健康检查
  * - 失败重试 + 冷却机制
  */
+export type HealthCheckMode = 'native' | 'proxy';
+
 export class WorkerProxyPool {
   private allProxies: string[];
   private healthyProxies: string[];
@@ -36,8 +38,10 @@ export class WorkerProxyPool {
   private healthCheckTimeout: number;
   private cooldownPeriod: number;  // 冷却周期（毫秒）
   private maxFailures: number;     // 最大失败次数
+  private healthCheckPath: string;  // Worker 自带健康检查接口路径
+  private healthCheckMode: HealthCheckMode;  // 健康检查模式
 
-  constructor(customProxies?: string[]) {
+  constructor(customProxies?: string[], healthCheckPath = '/health', mode: HealthCheckMode = 'native') {
     this.allProxies = customProxies || getAllWorkerProxies();
     this.healthyProxies = [...this.allProxies]; // 初始假设全部健康
     this.proxyStats = new Map();
@@ -45,6 +49,8 @@ export class WorkerProxyPool {
     this.healthCheckTimeout = 10000; // 10秒超时
     this.cooldownPeriod = 60000;    // 60秒冷却
     this.maxFailures = 3;           // 最多失败3次
+    this.healthCheckPath = healthCheckPath;  // Worker 自带健康检查接口
+    this.healthCheckMode = mode;    // 健康检查模式
     
     // 初始化所有代理的统计数据
     for (const proxy of this.allProxies) {
@@ -78,7 +84,10 @@ export class WorkerProxyPool {
 
   /**
    * 检查单个 Worker 是否健康
-   * 按照 wechat-article-exporter 标准：通过代理请求一个测试 URL 来验证
+   * 
+   * 两种模式：
+   * - native: 直接访问 Worker 自带的 /health 接口（推荐，速度快，不消耗流量）
+   * - proxy: 通过代理请求微信 URL（按照 wechat-article-exporter 标准）
    */
   async checkWorkerHealth(proxy: string): Promise<WorkerHealthCheck> {
     const startTime = Date.now();
@@ -86,30 +95,50 @@ export class WorkerProxyPool {
     const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
 
     try {
-      // 使用微信的静态资源 URL 进行健康检查
-      const testUrl = 'https://mp.weixin.qq.com/';
-      const testHeaders = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      };
-      
-      const healthUrl = this.buildProxyUrl(proxy, testUrl, testHeaders);
-      
-      const response = await fetch(healthUrl, {
-        method: 'GET',
-        signal: controller.signal,
-        referrerPolicy: 'unsafe-url',
-      });
+      if (this.healthCheckMode === 'native') {
+        // 模式1: 使用 Worker 自带的健康检查接口
+        const healthUrl = new URL(this.healthCheckPath, proxy).toString();
+        const response = await fetch(healthUrl, {
+          method: 'GET',
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeoutId);
-      
-      const isHealthy = response.status >= 200 && response.status < 400;
-      
-      return {
-        proxy,
-        healthy: isHealthy,
-        status: response.status,
-        responseTime: Date.now() - startTime,
-      };
+        clearTimeout(timeoutId);
+        
+        const isHealthy = response.status >= 200 && response.status < 300;
+        
+        return {
+          proxy,
+          healthy: isHealthy,
+          status: response.status,
+          responseTime: Date.now() - startTime,
+        };
+      } else {
+        // 模式2: 通过代理请求微信 URL（按照 wechat-article-exporter 标准）
+        const testUrl = 'https://mp.weixin.qq.com/';
+        const testHeaders = {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        };
+        
+        const proxyUrl = this.buildProxyUrl(proxy, testUrl, testHeaders);
+        
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          referrerPolicy: 'unsafe-url',
+        });
+
+        clearTimeout(timeoutId);
+        
+        const isHealthy = response.status >= 200 && response.status < 400;
+        
+        return {
+          proxy,
+          healthy: isHealthy,
+          status: response.status,
+          responseTime: Date.now() - startTime,
+        };
+      }
     } catch (error) {
       clearTimeout(timeoutId);
       
@@ -126,7 +155,8 @@ export class WorkerProxyPool {
    * 批量检查所有 Worker 的健康状态
    */
   async checkAllWorkers(concurrent = 10): Promise<WorkerHealthCheck[]> {
-    console.log(`🔍 开始检查 ${this.allProxies.length} 个 Worker 的健康状态...`);
+    const modeText = this.healthCheckMode === 'native' ? 'native (/health)' : 'proxy (via wechat URL)';
+    console.log(`🔍 开始检查 ${this.allProxies.length} 个 Worker 的健康状态 (模式: ${modeText})...`);
     
     const results: WorkerHealthCheck[] = [];
     const chunks: string[][] = [];

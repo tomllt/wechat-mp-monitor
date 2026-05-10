@@ -1,7 +1,7 @@
 import type { Command } from 'commander';
 import { syncAllAccounts } from '../lib/wechat/articles.js';
 import { getConcurrency, getProxyMode, getAllWorkerProxies } from '../lib/config.js';
-import { globalProxyPool } from '../lib/worker-proxy-pool.js';
+import { WorkerProxyPool, globalProxyPool } from '../lib/worker-proxy-pool.js';
 
 export function registerSyncCommand(program: Command): void {
   const sync = program.command('sync').description('执行增量同步');
@@ -19,6 +19,7 @@ export function registerSyncCommand(program: Command): void {
     .option('--no-proxy', '禁用代理')
     .option('--proxy-mode <mode>', '代理模式: none, content, all (默认: content)')
     .option('--health-check', '下载前执行 Worker 健康检查')
+    .option('--health-mode <mode>', '健康检查模式: native (默认), proxy')
     .action(async (options: {
       account?: string;
       limitPages?: string;
@@ -30,6 +31,7 @@ export function registerSyncCommand(program: Command): void {
       proxy?: boolean;
       proxyMode?: 'none' | 'content' | 'all';
       healthCheck?: boolean;
+      healthMode?: 'native' | 'proxy';
     }) => {
       // 设置环境变量
       if (options.proxyMode) {
@@ -43,6 +45,12 @@ export function registerSyncCommand(program: Command): void {
       }
       if (options.exportPath) {
         process.env.STORAGE_ROOT = options.exportPath;
+      }
+
+      // 如果指定了健康检查模式，重新初始化代理池
+      if (options.healthMode && options.healthMode !== 'native') {
+        // @ts-ignore - 使用私有构造参数
+        globalProxyPool = new WorkerProxyPool(undefined, '/health', options.healthMode);
       }
 
       // 执行健康检查
@@ -113,10 +121,18 @@ export function registerSyncCommand(program: Command): void {
     .command('health-check')
     .description('执行 Worker 健康检查')
     .option('--concurrent <number>', '并发检查数量，默认 10')
+    .option('--mode <mode>', '健康检查模式: native (默认), proxy')
     .option('--save', '保存健康检查结果到配置')
-    .action(async (options: { concurrent?: string; save?: boolean }) => {
+    .action(async (options: { concurrent?: string; mode?: 'native' | 'proxy'; save?: boolean }) => {
       const concurrent = options.concurrent ? parseInt(options.concurrent) : 10;
-      const results = await globalProxyPool.checkAllWorkers(concurrent);
+      
+      // 如果指定了模式，重新初始化代理池
+      let proxyPool = globalProxyPool;
+      if (options.mode && options.mode !== 'native') {
+        proxyPool = new WorkerProxyPool(undefined, '/health', options.mode);
+      }
+      
+      const results = await proxyPool.checkAllWorkers(concurrent);
       
       const healthy = results.filter(r => r.healthy);
       const unhealthy = results.filter(r => !r.healthy);
