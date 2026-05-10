@@ -159,7 +159,7 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
 
   // 判断是否使用代理（严格按照 wechat-article-exporter 标准实现）
   if (shouldUseProxy(options)) {
-    proxyUsed = globalProxyPool.getNextProxy();
+    proxyUsed = globalProxyPool.getBestProxy();
     if (proxyUsed) {
       // Worker 是查询参数驱动的定制程序
       finalUrl = buildWorkerProxyUrl(proxyUsed, endpoint.toString(), headersObj);

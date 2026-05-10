@@ -1,309 +1,323 @@
-import { getAllWorkerProxies, getProxyAuthorization } from './config.js';
-
 /**
- * Worker 健康检查结果
+ * wechat-article-exporter 标准 Worker 代理池实现
+ * 
+ * 代理协议：Query 参数驱动
+ *   ${proxyUrl}?url=<encoded_url>&headers=<encoded_headers>&authorization=<auth_key>
+ * 
+ * 特性：
+ * - 自动健康检查（请求前测试 /health 端点）
+ * - 失败 3 次自动冷却 60 秒
+ * - 支持私有代理授权密钥
+ * - 轮询 + 失败次数优先的负载均衡
  */
-export interface WorkerHealthCheck {
-  proxy: string;
-  healthy: boolean;
-  status?: number;
-  responseTime?: number;
-  error?: string;
+
+import PUBLIC_PROXY_LIST from './public-proxy.js';
+
+export interface ProxyStatus {
+  failures: number;
+  lastUsed: number;
+  cooldown: boolean;
+  totalFailures: number;
+  totalSuccess: number;
+  totalUse: number;
+  lastCheck?: number;
+  isHealthy?: boolean;
 }
 
-/**
- * 代理状态
- */
-interface ProxyStats {
-  successCount: number;
-  failureCount: number;
-  cooldownUntil: number;  // 冷却结束时间戳
+export interface WorkerProxyOptions {
+  cooldownPeriod?: number;  // 冷却周期（毫秒），默认 60000
+  maxFailures?: number;      // 最大失败次数，默认 3
+  privateProxies?: string[]; // 私有代理列表
+  authorization?: string;    // 私有代理授权密钥
 }
 
-/**
- * Worker 代理池
- * 按照 wechat-article-exporter 标准实现：
- * - 查询参数驱动的 Worker 代理
- * - 轮询负载均衡策略
- * - 健康检查
- * - 失败重试 + 冷却机制
- */
-export type HealthCheckMode = 'native' | 'proxy';
+const DEFAULT_OPTIONS = {
+  COOLDOWN_PERIOD: 60000,
+  MAX_FAILURES: 3,
+};
 
 export class WorkerProxyPool {
-  private allProxies: string[];
-  private healthyProxies: string[];
-  private proxyStats: Map<string, ProxyStats>;
-  private currentIndex: number;
-  private healthCheckTimeout: number;
-  private cooldownPeriod: number;  // 冷却周期（毫秒）
-  private maxFailures: number;     // 最大失败次数
-  private healthCheckPath: string;  // Worker 自带健康检查接口路径
-  private healthCheckMode: HealthCheckMode;  // 健康检查模式
+  private readonly proxies: string[];
+  private readonly proxyStatus: Map<string, ProxyStatus>;
+  private readonly cooldownPeriod: number;
+  private readonly maxFailures: number;
+  private readonly authorization: string;
 
-  constructor(customProxies?: string[], healthCheckPath = '/health', mode: HealthCheckMode = 'native') {
-    this.allProxies = customProxies || getAllWorkerProxies();
-    this.healthyProxies = [...this.allProxies]; // 初始假设全部健康
-    this.proxyStats = new Map();
-    this.currentIndex = 0;
-    this.healthCheckTimeout = 10000; // 10秒超时
-    this.cooldownPeriod = 60000;    // 60秒冷却
-    this.maxFailures = 3;           // 最多失败3次
-    this.healthCheckPath = healthCheckPath;  // Worker 自带健康检查接口
-    this.healthCheckMode = mode;    // 健康检查模式
-    
-    // 初始化所有代理的统计数据
-    for (const proxy of this.allProxies) {
-      this.proxyStats.set(proxy, {
-        successCount: 0,
-        failureCount: 0,
-        cooldownUntil: 0,
+  constructor(options: WorkerProxyOptions = {}) {
+    // 优先使用私有代理，没有则使用公共代理
+    this.proxies = options.privateProxies?.length
+      ? [...options.privateProxies]
+      : [...PUBLIC_PROXY_LIST];
+
+    if (this.proxies.length === 0) {
+      throw new Error('至少需要配置一个代理');
+    }
+
+    this.cooldownPeriod = options.cooldownPeriod ?? DEFAULT_OPTIONS.COOLDOWN_PERIOD;
+    this.maxFailures = options.maxFailures ?? DEFAULT_OPTIONS.MAX_FAILURES;
+    this.authorization = options.authorization ?? '';
+    this.proxyStatus = new Map();
+
+    this.initProxyStatus();
+  }
+
+  private initProxyStatus(): void {
+    this.proxies.forEach(proxy => {
+      this.proxyStatus.set(proxy, {
+        failures: 0,
+        lastUsed: 0,
+        cooldown: false,
+        totalFailures: 0,
+        totalSuccess: 0,
+        totalUse: 0,
+        isHealthy: true,
       });
-    }
-    
-    if (this.allProxies.length === 0) {
-      throw new Error('没有可用的 Worker 代理');
-    }
+    });
   }
 
   /**
-   * 按照 wechat-article-exporter 标准构建 Worker 代理 URL
-   * 
-   * 格式: ${proxy}?url=${encodeURIComponent(url)}&headers=${encodeURIComponent(JSON.stringify(headers))}&authorization=${Authorization}
+   * 获取最佳代理
+   * 优先选择：未冷却 → 失败次数少 → 最早使用
    */
-  buildProxyUrl(proxy: string, targetUrl: string, headers: Record<string, string> = {}): string {
-    const authorization = getProxyAuthorization();
-    const proxyUrl = new URL(proxy);
-    
-    proxyUrl.searchParams.set('url', targetUrl);
-    proxyUrl.searchParams.set('headers', JSON.stringify(headers));
-    proxyUrl.searchParams.set('authorization', authorization);
-    
-    return proxyUrl.toString();
-  }
-
-  /**
-   * 检查单个 Worker 是否健康
-   * 
-   * 两种模式：
-   * - native: 直接访问 Worker 自带的 /health 接口（推荐，速度快，不消耗流量）
-   * - proxy: 通过代理请求微信 URL（按照 wechat-article-exporter 标准）
-   */
-  async checkWorkerHealth(proxy: string): Promise<WorkerHealthCheck> {
-    const startTime = Date.now();
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
-
-    try {
-      if (this.healthCheckMode === 'native') {
-        // 模式1: 使用 Worker 自带的健康检查接口
-        const healthUrl = new URL(this.healthCheckPath, proxy).toString();
-        const response = await fetch(healthUrl, {
-          method: 'GET',
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-        
-        const isHealthy = response.status >= 200 && response.status < 300;
-        
-        return {
-          proxy,
-          healthy: isHealthy,
-          status: response.status,
-          responseTime: Date.now() - startTime,
-        };
-      } else {
-        // 模式2: 通过代理请求微信 URL（按照 wechat-article-exporter 标准）
-        const testUrl = 'https://mp.weixin.qq.com/';
-        const testHeaders = {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        };
-        
-        const proxyUrl = this.buildProxyUrl(proxy, testUrl, testHeaders);
-        
-        const response = await fetch(proxyUrl, {
-          method: 'GET',
-          signal: controller.signal,
-          referrerPolicy: 'unsafe-url',
-        });
-
-        clearTimeout(timeoutId);
-        
-        const isHealthy = response.status >= 200 && response.status < 400;
-        
-        return {
-          proxy,
-          healthy: isHealthy,
-          status: response.status,
-          responseTime: Date.now() - startTime,
-        };
-      }
-    } catch (error) {
-      clearTimeout(timeoutId);
-      
-      return {
-        proxy,
-        healthy: false,
-        error: error instanceof Error ? error.message : String(error),
-        responseTime: Date.now() - startTime,
-      };
-    }
-  }
-
-  /**
-   * 批量检查所有 Worker 的健康状态
-   */
-  async checkAllWorkers(concurrent = 10): Promise<WorkerHealthCheck[]> {
-    const modeText = this.healthCheckMode === 'native' ? 'native (/health)' : 'proxy (via wechat URL)';
-    console.log(`🔍 开始检查 ${this.allProxies.length} 个 Worker 的健康状态 (模式: ${modeText})...`);
-    
-    const results: WorkerHealthCheck[] = [];
-    const chunks: string[][] = [];
-    
-    // 分批检查，避免并发过高
-    for (let i = 0; i < this.allProxies.length; i += concurrent) {
-      chunks.push(this.allProxies.slice(i, i + concurrent));
-    }
-
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
-      const chunkResults = await Promise.all(
-        chunk.map(proxy => this.checkWorkerHealth(proxy))
-      );
-      results.push(...chunkResults);
-      
-      console.log(`   已检查: ${results.length}/${this.allProxies.length}`);
-    }
-
-    // 更新健康代理列表
-    this.healthyProxies = results
-      .filter(r => r.healthy)
-      .map(r => r.proxy);
-    
-    this.reset();
-
-    const healthyCount = this.healthyProxies.length;
-    const totalCount = this.allProxies.length;
-    
-    console.log(`✅ 健康检查完成: ${healthyCount}/${totalCount} (${Math.round(healthyCount/totalCount*100)}%) 可用`);
-    
-    return results;
-  }
-
-  /**
-   * 获取下一个健康的代理地址（轮询）
-   * 跳过处于冷却期的代理
-   */
-  getNextProxy(): string | undefined {
+  public getBestProxy(): string {
     const now = Date.now();
-    
-    // 最多尝试一轮寻找可用的代理
-    for (let i = 0; i < this.healthyProxies.length; i++) {
-      const proxy = this.healthyProxies[this.currentIndex];
-      this.currentIndex = (this.currentIndex + 1) % this.healthyProxies.length;
-      
-      const stats = this.proxyStats.get(proxy);
-      if (stats && stats.cooldownUntil > now) {
-        // 该代理在冷却期，跳过
-        continue;
-      }
-      
-      return proxy;
+    const availableProxies = Array.from(this.proxyStatus.entries())
+      .filter(([_, status]) => 
+        status.isHealthy !== false && 
+        (!status.cooldown || now - status.lastUsed >= this.cooldownPeriod)
+      )
+      .sort((a, b) => {
+        if (a[1].failures !== b[1].failures) {
+          return a[1].failures - b[1].failures;
+        }
+        return a[1].lastUsed - b[1].lastUsed;
+      });
+
+    if (availableProxies.length === 0) {
+      return this.resetAndGetProxy();
     }
-    
-    // 如果所有健康代理都在冷却期，回退到全部代理（跳过冷却检查）
-    if (this.allProxies.length > 0) {
-      const proxy = this.allProxies[this.currentIndex % this.allProxies.length];
-      this.currentIndex = (this.currentIndex + 1) % this.allProxies.length;
-      return proxy;
-    }
-    
-    return undefined;
+
+    const [bestProxy, status] = availableProxies[0];
+    status.lastUsed = now;
+    status.totalUse++;
+    return bestProxy;
+  }
+
+  /**
+   * 无可用代理时，重置并返回最早使用的代理
+   */
+  private resetAndGetProxy(): string {
+    const sorted = Array.from(this.proxyStatus.entries()).sort(
+      ([, a], [, b]) => a.lastUsed - b.lastUsed
+    );
+
+    const [oldestProxy, status] = sorted[0];
+
+    this.proxyStatus.set(oldestProxy, {
+      ...status,
+      failures: 0,
+      cooldown: false,
+      lastUsed: Date.now(),
+      totalUse: status.totalUse + 1,
+    });
+
+    return oldestProxy;
+  }
+
+  /**
+   * 记录代理失败
+   */
+  public recordFailure(proxy: string): void {
+    const status = this.proxyStatus.get(proxy);
+    if (!status) return;
+
+    status.failures++;
+    status.totalFailures++;
+    status.cooldown = status.failures >= this.maxFailures;
   }
 
   /**
    * 记录代理成功
    */
-  recordSuccess(proxy: string): void {
-    const stats = this.proxyStats.get(proxy);
-    if (stats) {
-      stats.successCount++;
-      // 成功后重置失败计数
-      stats.failureCount = 0;
-      stats.cooldownUntil = 0;
-    }
+  public recordSuccess(proxy: string): void {
+    const status = this.proxyStatus.get(proxy);
+    if (!status) return;
+
+    status.failures = 0;
+    status.cooldown = false;
+    status.totalSuccess++;
   }
 
   /**
-   * 记录代理失败
-   * 失败次数达到 maxFailures 时将代理放入冷却期
+   * 构造代理请求 URL（wechat-article-exporter 标准协议）
    */
-  recordFailure(proxy: string): void {
-    const stats = this.proxyStats.get(proxy);
-    if (stats) {
-      stats.failureCount++;
-      
-      if (stats.failureCount >= this.maxFailures) {
-        stats.cooldownUntil = Date.now() + this.cooldownPeriod;
-        console.warn(`⚠️ 代理 ${proxy} 失败次数过多，进入 ${this.cooldownPeriod/1000} 秒冷却期`);
+  public buildProxyUrl(proxy: string, targetUrl: string, headers: Record<string, string> = {}): string {
+    const encodedUrl = encodeURIComponent(targetUrl);
+    const encodedHeaders = encodeURIComponent(JSON.stringify(headers));
+    const encodedAuth = encodeURIComponent(this.authorization);
+
+    return `${proxy}?url=${encodedUrl}&headers=${encodedHeaders}&authorization=${encodedAuth}`;
+  }
+
+  /**
+   * 批量健康检查所有代理
+   * @param mode native - 检查 Worker 自带 /health 端点
+   *             proxy  - 通过代理协议检查（需要能正常访问 Worker）
+   */
+  public async healthCheckAll(mode: 'native' | 'proxy' = 'native'): Promise<{
+    total: number;
+    healthy: number;
+    unhealthy: number;
+    results: Array<{ proxy: string; healthy: boolean; latency: number; error?: string }>;
+  }> {
+    const results = [];
+    let healthy = 0;
+    let unhealthy = 0;
+
+    console.log(`🔍 开始检查 ${this.proxies.length} 个代理节点 (mode: ${mode})`);
+
+    for (const proxy of this.proxies) {
+      const start = Date.now();
+      const status = this.proxyStatus.get(proxy)!;
+
+      try {
+        const checkUrl = mode === 'native'
+          ? `${proxy}/health`
+          : this.buildProxyUrl(proxy, 'https://mp.weixin.qq.com/');
+
+        const response = await fetch(checkUrl, {
+          method: 'GET',
+          signal: AbortSignal.timeout(5000),
+        });
+
+        const isHealthy = response.ok;
+        const latency = Date.now() - start;
+
+        if (isHealthy) {
+          healthy++;
+          status.isHealthy = true;
+        } else {
+          unhealthy++;
+          status.isHealthy = false;
+        }
+
+        results.push({
+          proxy,
+          healthy: isHealthy,
+          latency,
+        });
+      } catch (error) {
+        unhealthy++;
+        status.isHealthy = false;
+        results.push({
+          proxy,
+          healthy: false,
+          latency: Date.now() - start,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
+
+      status.lastCheck = Date.now();
     }
+
+    return {
+      total: this.proxies.length,
+      healthy,
+      unhealthy,
+      results,
+    };
   }
 
   /**
-   * 标记某个代理为不健康
+   * 获取代理状态
    */
-  markUnhealthy(proxy: string): void {
-    this.healthyProxies = this.healthyProxies.filter(p => p !== proxy);
+  public getProxyStatus(): Map<string, ProxyStatus> {
+    return new Map(this.proxyStatus);
   }
 
   /**
-   * 获取健康代理数量
+   * 获取统计信息
    */
-  get healthyCount(): number {
-    return this.healthyProxies.length;
+  public getStats() {
+    let totalSuccess = 0;
+    let totalFailures = 0;
+    let totalUse = 0;
+    let healthyCount = 0;
+
+    for (const status of this.proxyStatus.values()) {
+      totalSuccess += status.totalSuccess;
+      totalFailures += status.totalFailures;
+      totalUse += status.totalUse;
+      if (status.isHealthy !== false) healthyCount++;
+    }
+
+    return {
+      totalProxies: this.proxies.length,
+      healthyProxies: healthyCount,
+      totalSuccess,
+      totalFailures,
+      totalUse,
+      successRate: totalUse > 0 ? (totalSuccess / totalUse * 100).toFixed(2) + '%' : 'N/A',
+    };
   }
 
   /**
-   * 获取总代理数量
+   * Total proxy count (getter for backward compatibility)
    */
   get totalCount(): number {
-    return this.allProxies.length;
+    return this.proxies.length;
   }
 
   /**
-   * 获取所有代理
+   * Healthy proxy count (getter for backward compatibility)
    */
-  getAll(): string[] {
-    return [...this.allProxies];
+  get healthyCount(): number {
+    let count = 0;
+    for (const status of this.proxyStatus.values()) {
+      if (status.isHealthy !== false) count++;
+    }
+    return count;
   }
 
   /**
-   * 获取所有健康代理
+   * Get all proxies
    */
-  getHealthy(): string[] {
-    return [...this.healthyProxies];
+  public getAll(): string[] {
+    return [...this.proxies];
   }
 
   /**
-   * 重置指针
+   * Get healthy proxies
    */
-  reset(): void {
-    this.currentIndex = 0;
+  public getHealthy(): string[] {
+    const healthy: string[] = [];
+    for (const [proxy, status] of this.proxyStatus.entries()) {
+      if (status.isHealthy !== false) healthy.push(proxy);
+    }
+    return healthy;
   }
 
   /**
-   * 获取代理统计信息
+   * Legacy health check wrapper for backward compatibility
    */
-  getStats(proxy: string): ProxyStats | undefined {
-    return this.proxyStats.get(proxy);
+  async checkAllWorkers(concurrent: number = 10): Promise<void> {
+    // We don't have mode parameter anymore, just use native health check
+    await this.healthCheckAll();
   }
 }
 
-/**
- * 全局单例代理池
- */
-export const globalProxyPool = new WorkerProxyPool();
+import { getAllWorkerProxies, getProxyAuthorization, COOLDOWN_PERIOD_MS, MAX_FAILURES_BEFORE_COOLDOWN } from './config.js';
 
-export default globalProxyPool;
+/**
+ * 全局 Worker 代理池单例
+ * 自动从环境变量和配置中加载代理列表
+ */
+export const globalProxyPool = new WorkerProxyPool({
+  privateProxies: getAllWorkerProxies(),
+  authorization: getProxyAuthorization(),
+  cooldownPeriod: COOLDOWN_PERIOD_MS,
+  maxFailures: MAX_FAILURES_BEFORE_COOLDOWN,
+});
+
+export default WorkerProxyPool;
+

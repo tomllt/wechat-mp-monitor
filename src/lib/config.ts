@@ -1,112 +1,131 @@
-import * as os from 'node:os';
-import * as path from 'node:path';
+/**
+ * 应用配置
+ */
 
-export const USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
+import { homedir } from 'os';
+// HTTP 请求超时
+export const DEFAULT_TIMEOUT_MS = 30000;
 
+// User-Agent
+export const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36';
+
+// 微信 Origin
 export const WECHAT_ORIGIN = 'https://mp.weixin.qq.com';
-export const WECHAT_REFERER = `${WECHAT_ORIGIN}/`;
-export const DEFAULT_PAGE_SIZE = 5;
-export const SYNC_PAGE_SIZE = 5;
-export const DEFAULT_SYNC_DELAY_MS = 1500;
-export const DEFAULT_TIMEOUT_MS = 30_000;
+
+// 微信 Referer
+export const WECHAT_REFERER = 'https://mp.weixin.qq.com/';
+
+// 同步延迟（避免风控）
+export const DEFAULT_SYNC_DELAY_MS = 1000;
+
+// 同步分页大小
+export const SYNC_PAGE_SIZE = 20;
+
+
+import { join } from 'path';
+
+// 工作目录
+export const WORK_DIR = join(homedir(), '.wechat-mp-monitor');
+
+// 数据库路径
+export const DB_PATH = join(WORK_DIR, 'app.db');
+
+// 登录状态缓存路径
+export const LOGIN_STATE_PATH = join(WORK_DIR, 'login-state.json');
+
+// 微信公众号后台域名
+export const MP_BASE_URL = 'https://mp.weixin.qq.com';
+
+// 默认 User-Agent
+export const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36';
+
+// 文章列表每页大小
+export const ARTICLE_LIST_PAGE_SIZE = 20;
+
+// 登录二维码有效期（秒）
+export const QR_CODE_EXPIRE_SECONDS = 300;
+
+// 轮询间隔（毫秒）
+export const POLL_INTERVAL_MS = 2000;
+
+// 默认下载并发数
+export const DEFAULT_CONCURRENCY = 5;
+
+// 默认下载超时时间（毫秒）
+export const DEFAULT_DOWNLOAD_TIMEOUT = 30000;
+
+// 下载间隔（避免风控）
+export const DEFAULT_DOWNLOAD_INTERVAL_MS = 0;
+
+// 默认最大重试次数
+export const DEFAULT_MAX_RETRIES = 3;
+
+// 下载失败冷却时间（毫秒）
+export const COOLDOWN_PERIOD_MS = 60000;
+
+// 连续失败最大次数（达到后进入冷却）
+export const MAX_FAILURES_BEFORE_COOLDOWN = 3;
 
 /**
- * 默认并发数
+ * 用户私有 Cloudflare Worker 代理列表
+ * 
+ * 注意：由于中国大陆 DNS 污染，*.workers.dev 域名可能无法访问
+ * 建议绑定自定义域名使用，例如：https://01.your-custom-domain.com
+ * 
+ * 如需配置私有代理，请设置环境变量 WECHAT_MP_PRIVATE_PROXIES
+ * 多个代理用逗号分隔，例如：
+ * export WECHAT_MP_PRIVATE_PROXIES="https://01.your-domain.com,https://02.your-domain.com"
+ * 
+ * 或者在代码中配置（不推荐，可能泄露到 Git）：
+ * export const PRIVATE_WORKER_PROXIES: string[] = [
+ *   'https://01.your-custom-domain.com',
+ * ];
  */
-export const DEFAULT_CONCURRENCY = 3;
+export const PRIVATE_WORKER_PROXIES: string[] = [];
 
 /**
- * 下载间隔（毫秒），每篇文章下载后的延迟
+ * 私有代理授权密钥（如需要）
+ * 设置环境变量 WECHAT_MP_PROXY_AUTHORIZATION
  */
-export const DEFAULT_DOWNLOAD_INTERVAL_MS = 300;
+export const PRIVATE_PROXY_AUTHORIZATION = process.env.WECHAT_MP_PROXY_AUTHORIZATION || '';
 
 /**
- * 默认存储根目录
- */
-export const DEFAULT_STORAGE_ROOT = path.join(os.homedir(), 'wechat-articles');
-
-/**
- * 内置公共 Worker 代理池（来自 wechat-article-exporter）
- */
-export const BUILTIN_WORKER_PROXIES: string[] = [
-  // worker-proxy.asia (00-15)
-  ...getDomainProxyList('worker-proxy.asia'),
-  // net-proxy.asia (00-15)
-  ...getDomainProxyList('net-proxy.asia'),
-  // 1235566.space (00-15)
-  ...getDomainProxyList('1235566.space'),
-  // worker-proxy.shop (00-15)
-  ...getDomainProxyList('worker-proxy.shop'),
-  // worker-proxys.cyou (00-15)
-  ...getDomainProxyList('worker-proxys.cyou'),
-  // worker-proxy.cyou (00-15)
-  ...getDomainProxyList('worker-proxy.cyou'),
-];
-
-/**
- * 用户私有 Worker 代理池（从 Cloudflare 部署的 10 个私有 Worker）
- */
-export const PRIVATE_WORKER_PROXIES: string[] = [
-  'https://test-mp-proxy-01.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-00.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-01.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-02.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-03.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-04.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-05.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-06.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-07.myproxy3d45da21.workers.dev',
-  'https://mp-proxy-08.myproxy3d45da21.workers.dev',
-];
-
-/**
- * 从环境变量读取私有 Worker 列表
- * 格式: WORKER_PROXIES=https://proxy1.example.com,https://proxy2.example.com
- */
-export function getPrivateWorkerProxies(): string[] {
-  const envValue = process.env.WORKER_PROXIES || '';
-  if (!envValue) return [];
-  return envValue.split(',').map(s => s.trim()).filter(Boolean);
-}
-
-/**
- * 获取所有可用的 Worker 代理（私有优先，内置公共备选）
+ * 获取所有可用的 Worker 代理
+ * 优先级：环境变量配置 > 内置私有代理 > 内置公共代理
  */
 export function getAllWorkerProxies(): string[] {
-  const envProxies = getPrivateWorkerProxies();
-  // 优先级: 环境变量配置 > 内置私有代理 > 内置公共代理
+  // 从环境变量读取
+  const envProxies = process.env.WECHAT_MP_PRIVATE_PROXIES
+    ? process.env.WECHAT_MP_PRIVATE_PROXIES.split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+
   if (envProxies.length > 0) {
     return envProxies;
   }
-  // 如果有内置私有代理，优先使用私有代理
+
+  // 返回内置私有代理（如果有）
   if (PRIVATE_WORKER_PROXIES.length > 0) {
     return PRIVATE_WORKER_PROXIES;
   }
-  return BUILTIN_WORKER_PROXIES;
-}
 
-/**
- * 生成从 00. 到 15. 的 16 个二级域名
- */
-function getDomainProxyList(domain: string): string[] {
-  const list: string[] = [];
-  for (let i = 0; i < 16; i++) {
-    list.push(`https://${String(i).padStart(2, '0')}.${domain}`);
-  }
-  return list;
+  // 没有私有代理时返回空，公共代理会在运行时动态加载
+  return [];
 }
 
 /**
  * 代理模式
- * - none: 不使用代理
- * - content: 仅文章正文下载走代理（推荐）
- * - all: 所有请求走代理
+ * - none: 不使用代理（直接连接）
+ * - content: 仅文章内容使用代理（默认）
+ * - all: 所有请求都使用代理
  */
 export type ProxyMode = 'none' | 'content' | 'all';
 
+/**
+ * 获取当前代理模式
+ * 可通过环境变量 WECHAT_MP_PROXY_MODE 设置
+ */
 export function getProxyMode(): ProxyMode {
-  const mode = process.env.PROXY_MODE || 'content';
+  const mode = process.env.WECHAT_MP_PROXY_MODE?.toLowerCase() ?? 'content';
   if (['none', 'content', 'all'].includes(mode)) {
     return mode as ProxyMode;
   }
@@ -114,29 +133,50 @@ export function getProxyMode(): ProxyMode {
 }
 
 /**
- * 获取并发数配置
+ * 获取代理授权密钥
+ * 可通过环境变量 WECHAT_MP_PROXY_AUTHORIZATION 设置
+ */
+
+/**
+ * 获取下载并发数
+ * 可通过环境变量 WECHAT_MP_CONCURRENCY 设置
  */
 export function getConcurrency(): number {
-  const value = process.env.DOWNLOAD_CONCURRENCY;
+  const value = process.env.WECHAT_MP_CONCURRENCY;
   if (value) {
-    const num = parseInt(value, 10);
-    if (!isNaN(num) && num > 0) {
-      return num;
+    const parsed = parseInt(value, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed;
     }
   }
   return DEFAULT_CONCURRENCY;
 }
 
-/**
- * 获取存储根目录
- */
-export function getStorageRoot(): string {
-  return process.env.STORAGE_ROOT || DEFAULT_STORAGE_ROOT;
+export function getProxyAuthorization(): string {
+  return process.env.WECHAT_MP_PROXY_AUTHORIZATION ?? '';
 }
 
-/**
- * 获取私有代理授权信息（按照 wechat-article-exporter 标准）
- */
-export function getProxyAuthorization(): string {
-  return process.env.PROXY_AUTHORIZATION || '';
-}
+export default {
+  SYNC_PAGE_SIZE,
+  DEFAULT_SYNC_DELAY_MS,
+  WECHAT_REFERER,
+  WECHAT_ORIGIN,
+  DEFAULT_TIMEOUT_MS,
+  WORK_DIR,
+  DB_PATH,
+  LOGIN_STATE_PATH,
+  MP_BASE_URL,
+  DEFAULT_USER_AGENT,
+  ARTICLE_LIST_PAGE_SIZE,
+  QR_CODE_EXPIRE_SECONDS,
+  POLL_INTERVAL_MS,
+  DEFAULT_CONCURRENCY,
+  DEFAULT_DOWNLOAD_INTERVAL_MS,
+  DEFAULT_DOWNLOAD_TIMEOUT,
+  DEFAULT_MAX_RETRIES,
+  COOLDOWN_PERIOD_MS,
+  MAX_FAILURES_BEFORE_COOLDOWN,
+  getAllWorkerProxies,
+  getProxyMode,
+  getProxyAuthorization,
+};

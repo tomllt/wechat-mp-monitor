@@ -1,3 +1,5 @@
+import { WORK_DIR } from './config.js';
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,4 +35,11 @@ export function articleNormalizedPath(fakeid: string, aid: string): string {
 
 export function reportOutputDir(date: string): string {
   return ensureDir(path.join(reportsDir, date));
+}
+
+/**
+ * 获取存储根目录（与 article-exporter 兼容）
+ */
+export function getStorageRoot(): string {
+  return WORK_DIR;
 }

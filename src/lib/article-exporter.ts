@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import TurndownService from 'turndown';
-import { getStorageRoot } from './config.js';
+import { getStorageRoot } from './paths.js';
 import type { ArticleRow } from './types.js';
 
 /**

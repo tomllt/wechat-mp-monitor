@@ -48,7 +48,7 @@ export function registerDownloadCommand(program: Command): void {
 
       // 执行健康检查
       if (options.healthCheck && getProxyMode() !== 'none') {
-        await globalProxyPool.checkAllWorkers();
+        await globalProxyPool.healthCheckAll();
         console.log();
       }
 

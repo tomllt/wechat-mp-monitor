@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import { syncAllAccounts } from '../lib/wechat/articles.js';
-import { getConcurrency, getProxyMode, getAllWorkerProxies } from '../lib/config.js';
+import { getConcurrency, getProxyAuthorization, getProxyMode, getAllWorkerProxies } from '../lib/config.js';
 import { WorkerProxyPool, globalProxyPool } from '../lib/worker-proxy-pool.js';
 
 export function registerSyncCommand(program: Command): void {
@@ -129,10 +129,14 @@ export function registerSyncCommand(program: Command): void {
       // 如果指定了模式，重新初始化代理池
       let proxyPool = globalProxyPool;
       if (options.mode && options.mode !== 'native') {
-        proxyPool = new WorkerProxyPool(undefined, '/health', options.mode);
+        proxyPool = new WorkerProxyPool({
+          privateProxies: getAllWorkerProxies(),
+          authorization: getProxyAuthorization(),
+        });
       }
       
-      const results = await proxyPool.checkAllWorkers(concurrent);
+      const checkResult = await proxyPool.healthCheckAll();
+      const results = checkResult.results;
       
       const healthy = results.filter(r => r.healthy);
       const unhealthy = results.filter(r => !r.healthy);
@@ -146,7 +150,7 @@ export function registerSyncCommand(program: Command): void {
         console.log();
         console.log('❌ 不可用的 Worker (前 10):');
         unhealthy.slice(0, 10).forEach((r, i) => {
-          console.log(`   ${i + 1}. ${r.proxy} - ${r.error || `HTTP ${r.status}`}`);
+          console.log(`   ${i + 1}. ${r.proxy} - ${r.error || `检查失败`}`);
         });
       }
       
