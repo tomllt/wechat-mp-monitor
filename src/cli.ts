@@ -5,6 +5,7 @@ import { registerLoginCommand } from './commands/login.js';
 import { registerQueryCommand } from './commands/query.js';
 import { registerReportCommand } from './commands/report.js';
 import { registerSyncCommand } from './commands/sync.js';
+import { registerDownloadCommand } from './commands/download.js';
 import { ensureRuntimeDirs } from './lib/paths.js';
 
 async function main() {
@@ -14,7 +15,7 @@ async function main() {
   program
     .name('wechat-mp-monitor')
     .description('微信公众号监控与日报工具')
-    .version('0.1.0');
+    .version('0.2.0');
 
   program
     .command('doctor')
@@ -27,14 +28,14 @@ async function main() {
   registerAuthCommand(program);
   registerAccountsCommand(program);
   registerSyncCommand(program);
+  registerDownloadCommand(program);
   registerQueryCommand(program);
   registerReportCommand(program);
 
-  await program.parseAsync(process.argv);
+  await program.parseAsync();
 }
 
 main().catch(error => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exitCode = 1;
+  console.error(error);
+  process.exit(1);
 });

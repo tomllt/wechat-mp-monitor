@@ -16,8 +16,10 @@
     "better-sqlite3": "^11.10.0",
     "cheerio": "^1.1.2",
     "commander": "^14.0.0",
+    "p-limit": "^5.0.0",
     "pngjs": "^7.0.0",
     "set-cookie-parser": "^2.7.1",
+    "turndown": "^7.2.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -25,6 +27,7 @@
     "@types/node": "^24.0.15",
     "@types/pngjs": "^6.0.5",
     "@types/qrcode-terminal": "^0.12.2",
+    "@types/turndown": "^5.0.6",
     "qrcode-terminal": "^0.12.0",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",

@@ -189,6 +189,7 @@ export function finalizeSyncRun(runId: number, values: {
   accountCount: number;
   articleCount: number;
   contentCount: number;
+  failedContentCount: number;
   errorCount: number;
   notes?: string | null;
 }): void {
@@ -196,7 +197,7 @@ export function finalizeSyncRun(runId: number, values: {
     .prepare(
       `
       UPDATE sync_run
-      SET finished_at = ?, status = ?, account_count = ?, article_count = ?, content_count = ?, error_count = ?, notes = ?
+      SET finished_at = ?, status = ?, account_count = ?, article_count = ?, content_count = ?, failed_content_count = ?, error_count = ?, notes = ?
       WHERE id = ?
       `
     )
@@ -206,6 +207,7 @@ export function finalizeSyncRun(runId: number, values: {
       values.accountCount,
       values.articleCount,
       values.contentCount,
+      values.failedContentCount,
       values.errorCount,
       values.notes ?? null,
       runId
@@ -227,13 +229,14 @@ export function finalizeSyncRunItem(itemId: number, values: {
   newArticles: number;
   updatedArticles: number;
   fetchedContents: number;
+  failedContents: number;
   errorMessage?: string | null;
 }): void {
   getDb()
     .prepare(
       `
       UPDATE sync_run_item
-      SET finished_at = ?, status = ?, page_count = ?, new_articles = ?, updated_articles = ?, fetched_contents = ?, error_message = ?
+      SET finished_at = ?, status = ?, page_count = ?, new_articles = ?, updated_articles = ?, fetched_contents = ?, failed_contents = ?, error_message = ?
       WHERE id = ?
       `
     )
@@ -244,6 +247,7 @@ export function finalizeSyncRunItem(itemId: number, values: {
       values.newArticles,
       values.updatedArticles,
       values.fetchedContents,
+      values.failedContents,
       values.errorMessage ?? null,
       itemId
     );

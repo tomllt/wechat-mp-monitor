@@ -1,4 +1,5 @@
-import { DEFAULT_TIMEOUT_MS, USER_AGENT, WECHAT_ORIGIN, WECHAT_REFERER } from '../config.js';
+import { DEFAULT_TIMEOUT_MS, USER_AGENT, WECHAT_ORIGIN, WECHAT_REFERER, getProxyMode, getProxyAuthorization } from '../config.js';
+import { globalProxyPool } from '../worker-proxy-pool.js';
 import type { StoredCookie } from '../types.js';
 
 export interface WechatRequestOptions {
@@ -10,6 +11,11 @@ export interface WechatRequestOptions {
   headers?: Record<string, string>;
   timeoutMs?: number;
   responseType?: 'json' | 'text' | 'buffer';
+  /**
+   * 是否强制使用代理（即使 proxyMode 是 none）
+   * 用于文章正文下载
+   */
+  forceProxy?: boolean;
 }
 
 export interface WechatResponse<T = unknown> {
@@ -17,6 +23,7 @@ export interface WechatResponse<T = unknown> {
   headers: Headers;
   cookies: StoredCookie[];
   status: number;
+  proxyUsed?: string;
 }
 
 export function serializeCookies(cookies: StoredCookie[]): string {
@@ -63,9 +70,53 @@ function parseSetCookieHeaders(headers: Headers): StoredCookie[] {
     .filter(cookie => cookie.name);
 }
 
+/**
+ * 判断请求是否应该使用代理
+ * 登录请求不走代理，仅文章下载可使用代理
+ */
+function shouldUseProxy(options: WechatRequestOptions): boolean {
+  const proxyMode = getProxyMode();
+  
+  // 如果全局禁用代理，任何情况都不使用
+  if (proxyMode === 'none') {
+    return false;
+  }
+  
+  // 强制使用代理（用于文章正文下载）
+  if (options.forceProxy) {
+    return true;
+  }
+  
+  if (proxyMode === 'all') {
+    return true;
+  }
+  
+  // content 模式：仅文章内容下载使用代理（由调用方通过 forceProxy 控制）
+  return false;
+}
+
+/**
+ * 按照 wechat-article-exporter 标准实现构建 Worker 代理 URL
+ * 
+ * Worker 是查询参数驱动的定制程序，格式：
+ * ${proxy}?url=${encodeURIComponent(url)}&headers=${encodeURIComponent(JSON.stringify(headers))}&authorization=${Authorization}
+ */
+function buildWorkerProxyUrl(proxy: string, targetUrl: string, headersObj: Record<string, string>): string {
+  const authorization = getProxyAuthorization();
+  const proxyUrl = new URL(proxy);
+  
+  // 设置查询参数（严格按照 wechat-article-exporter 标准）
+  proxyUrl.searchParams.set('url', targetUrl);
+  proxyUrl.searchParams.set('headers', JSON.stringify(headersObj));
+  proxyUrl.searchParams.set('authorization', authorization);
+  
+  return proxyUrl.toString();
+}
+
 export async function wechatRequest<T = unknown>(options: WechatRequestOptions): Promise<WechatResponse<T>> {
   const method = options.method ?? 'GET';
   const endpoint = new URL(options.endpoint);
+
   for (const [key, value] of Object.entries(options.query ?? {})) {
     if (value === undefined || value === null) {
       continue;
@@ -73,16 +124,20 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
     endpoint.searchParams.set(key, String(value));
   }
 
-  const headers = new Headers({
+  // 构建请求头对象（用于传递给 Worker）
+  const headersObj: Record<string, string> = {
     Referer: WECHAT_REFERER,
     Origin: WECHAT_ORIGIN,
     'User-Agent': USER_AGENT,
     'Accept-Encoding': 'identity',
     ...options.headers,
-  });
+  };
   if (options.cookies?.length) {
-    headers.set('Cookie', serializeCookies(options.cookies));
+    headersObj.Cookie = serializeCookies(options.cookies);
   }
+
+  // 构建 Headers（用于直接请求时）
+  const headers = new Headers(headersObj);
 
   let body: URLSearchParams | undefined;
   if (method === 'POST' && options.body) {
@@ -97,13 +152,30 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+
+  let finalUrl = endpoint.toString();
+  let proxyUsed: string | undefined;
+  let finalHeaders = headers;
+
+  // 判断是否使用代理（严格按照 wechat-article-exporter 标准实现）
+  if (shouldUseProxy(options)) {
+    proxyUsed = globalProxyPool.getNextProxy();
+    if (proxyUsed) {
+      // Worker 是查询参数驱动的定制程序
+      finalUrl = buildWorkerProxyUrl(proxyUsed, endpoint.toString(), headersObj);
+      // 当使用 Worker 代理时，不再需要设置请求头，因为 Worker 会自己处理
+      finalHeaders = new Headers();
+    }
+  }
+
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch(finalUrl, {
       method,
-      headers,
+      headers: finalHeaders,
       body,
       redirect: 'follow',
       signal: controller.signal,
+      referrerPolicy: 'unsafe-url',  // 按照 wechat-article-exporter 标准
     });
 
     const cookies = parseSetCookieHeaders(response.headers);
@@ -120,12 +192,24 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
         break;
     }
 
+    // 记录代理成功
+    if (proxyUsed) {
+      globalProxyPool.recordSuccess(proxyUsed);
+    }
+
     return {
       data: data as T,
       headers: response.headers,
       cookies,
       status: response.status,
+      proxyUsed,
     };
+  } catch (error) {
+    // 记录代理失败
+    if (proxyUsed) {
+      globalProxyPool.recordFailure(proxyUsed);
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
   }

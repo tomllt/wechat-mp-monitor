@@ -1,4 +1,4 @@
-import { DEFAULT_SYNC_DELAY_MS, SYNC_PAGE_SIZE } from '../config.js';
+import { DEFAULT_SYNC_DELAY_MS, SYNC_PAGE_SIZE, getConcurrency, getProxyMode } from '../config.js';
 import {
   createSyncRun,
   createSyncRunItem,
@@ -8,25 +8,24 @@ import {
   getArticlesMissingContent,
   getWatchAccount,
   listEnabledWatchAccounts,
-  nowIso,
   updateAccountSyncState,
   upsertArticle,
 } from '../storage/db.js';
-import type { ActiveAuthSession, AppMsgEx, AppMsgPublishResponse, ArticleRow, PublishPage } from '../types.js';
-import { sleep } from '../utils.js';
-import { getSessionCookies, validateActiveSession } from './auth.js';
-import { ingestArticleHtml } from './article-html.js';
+import type { ActiveAuthSession, AppMsgEx, AppMsgPublishResponse, ArticleRow } from '../types.js';
+import { globalDownloader } from '../concurrent-downloader.js';
+import { validateActiveSession, getSessionCookies } from './auth.js';
+import { ingestArticleHtml, type IngestOptions } from './article-html.js';
 import { wechatRequest } from './http.js';
 
 export function parsePublishPage(response: AppMsgPublishResponse): AppMsgEx[] {
   if (response.base_resp.ret !== 0) {
     throw new Error(`${response.base_resp.ret}:${response.base_resp.err_msg}`);
   }
-  const page = JSON.parse(response.publish_page) as PublishPage;
+  const page = JSON.parse(response.publish_page) as { publish_list: Array<{ publish_info?: string }> };
   return page.publish_list
     .filter(item => item.publish_info)
     .flatMap(item => {
-      const publishInfo = JSON.parse(item.publish_info) as { appmsgex: AppMsgEx[] };
+      const publishInfo = JSON.parse(item.publish_info!) as { appmsgex?: AppMsgEx[] };
       return publishInfo.appmsgex ?? [];
     });
 }
@@ -85,15 +84,26 @@ function toArticleRow(fakeid: string, item: AppMsgEx): Omit<ArticleRow, 'created
   };
 }
 
-export async function syncAccount(identifier: string, options?: {
+export interface SyncOptions {
   runId?: number;
   limitPages?: number;
   skipContent?: boolean;
-}): Promise<{
+  concurrency?: number;
+  account?: string;
+  /**
+   * 导出选项
+   */
+  export?: boolean;
+  exportFormat?: 'md' | 'word' | 'both';
+  exportPath?: string;
+}
+
+export async function syncAccount(identifier: string, options: SyncOptions = {}): Promise<{
   pages: number;
   inserted: number;
   updated: number;
   fetchedContents: number;
+  failedContents: number;
 }> {
   const account = getWatchAccount(identifier);
   if (!account) {
@@ -106,22 +116,27 @@ export async function syncAccount(identifier: string, options?: {
 
   const fakeid = String(account.fakeid);
   const nickname = String(account.nickname);
-  const runId = options?.runId ?? createSyncRun('running');
+  const runId = options.runId ?? createSyncRun('running');
   const itemId = createSyncRunItem(runId, fakeid, nickname);
+
+  const concurrency = options.concurrency ?? getConcurrency();
+  const downloader = concurrency > 0 
+    ? globalDownloader 
+    : { submit: <T>(fn: () => Promise<T>) => fn() };
 
   let begin = 0;
   let pages = 0;
   let inserted = 0;
   let updated = 0;
-  let fetchedContents = 0;
   let lastSeenCreateTime = Number(account.last_seen_create_time ?? 0);
   let latestSeenCreateTime = lastSeenCreateTime;
   let pageHasNewer = true;
   const contentQueue: ArticleRow[] = [];
 
   try {
+    // Step 1: 抓取文章元数据（串行，避免风控）
     while (pageHasNewer) {
-      if (options?.limitPages && pages >= options.limitPages) {
+      if (options.limitPages && pages >= options.limitPages) {
         break;
       }
       const articles = await fetchArticlePage(session, fakeid, begin);
@@ -145,7 +160,7 @@ export async function syncAccount(identifier: string, options?: {
           updated += 1;
         }
 
-        if (!options?.skipContent) {
+        if (!options.skipContent) {
           const row = getArticleByKeys(fakeid, article.aid);
           if (row && row.content_status !== 'ready') {
             contentQueue.push(row);
@@ -159,19 +174,38 @@ export async function syncAccount(identifier: string, options?: {
       }
     }
 
-    if (!options?.skipContent) {
-      for (const row of contentQueue) {
-        const result = await ingestArticleHtml(row, getSessionCookies(session));
-        if (result.status === 'ready') {
-          fetchedContents += 1;
-        }
-        await sleep(300);
-      }
+    // Step 2: 并发下载正文
+    let fetchedContents = 0;
+    let failedContents = 0;
+
+    if (!options.skipContent && contentQueue.length > 0) {
+      const ingestOptions: IngestOptions = {
+        export: options.export,
+        exportFormat: options.exportFormat,
+        exportPath: options.exportPath,
+      };
+
+      const promises = contentQueue.map(row =>
+        downloader.submit(async () => {
+          try {
+            const result = await ingestArticleHtml(row, getSessionCookies(session), ingestOptions);
+            if (result.status === 'ready' || result.status === 'deleted') {
+              fetchedContents += 1;
+            } else {
+              failedContents += 1;
+            }
+          } catch {
+            failedContents += 1;
+          }
+        })
+      );
+
+      await Promise.all(promises);
     }
 
     updateAccountSyncState(fakeid, {
-      lastSyncAt: nowIso(),
-      lastSuccessSyncAt: nowIso(),
+      lastSyncAt: new Date().toISOString(),
+      lastSuccessSyncAt: new Date().toISOString(),
       lastSeenCreateTime: latestSeenCreateTime || lastSeenCreateTime,
       lastError: null,
     });
@@ -182,6 +216,7 @@ export async function syncAccount(identifier: string, options?: {
       newArticles: inserted,
       updatedArticles: updated,
       fetchedContents,
+      failedContents,
     });
 
     return {
@@ -189,11 +224,12 @@ export async function syncAccount(identifier: string, options?: {
       inserted,
       updated,
       fetchedContents,
+      failedContents,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     updateAccountSyncState(fakeid, {
-      lastSyncAt: nowIso(),
+      lastSyncAt: new Date().toISOString(),
       lastError: message,
     });
     finalizeSyncRunItem(itemId, {
@@ -201,39 +237,38 @@ export async function syncAccount(identifier: string, options?: {
       pageCount: pages,
       newArticles: inserted,
       updatedArticles: updated,
-      fetchedContents,
+      fetchedContents: 0,
+      failedContents: 0,
       errorMessage: message,
     });
     throw error;
   }
 }
 
-export async function syncAllAccounts(options?: {
-  account?: string;
-  limitPages?: number;
-  skipContent?: boolean;
-}): Promise<{
+export async function syncAllAccounts(options: SyncOptions = {}): Promise<{
   accountCount: number;
   articleCount: number;
   contentCount: number;
+  failedContentCount: number;
   errorCount: number;
 }> {
   const runId = createSyncRun('running');
-  const accounts = options?.account ? [getWatchAccount(options.account)] : listEnabledWatchAccounts();
+  const accounts = options.account ? [getWatchAccount(options.account)] : listEnabledWatchAccounts();
   const validAccounts = accounts.filter(Boolean) as Array<Record<string, unknown>>;
   let articleCount = 0;
   let contentCount = 0;
+  let failedContentCount = 0;
   let errorCount = 0;
 
   for (const account of validAccounts) {
     try {
       const result = await syncAccount(String(account.fakeid), {
+        ...options,
         runId,
-        limitPages: options?.limitPages,
-        skipContent: options?.skipContent,
       });
       articleCount += result.inserted + result.updated;
       contentCount += result.fetchedContents;
+      failedContentCount += result.failedContents;
     } catch {
       errorCount += 1;
     }
@@ -244,6 +279,7 @@ export async function syncAllAccounts(options?: {
     accountCount: validAccounts.length,
     articleCount,
     contentCount,
+    failedContentCount,
     errorCount,
   });
 
@@ -251,10 +287,15 @@ export async function syncAllAccounts(options?: {
     accountCount: validAccounts.length,
     articleCount,
     contentCount,
+    failedContentCount,
     errorCount,
   };
 }
 
 export function findPendingContent(fakeid?: string): ArticleRow[] {
   return getArticlesMissingContent(fakeid);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
