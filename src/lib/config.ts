@@ -45,9 +45,10 @@ export const BUILTIN_WORKER_PROXIES: string[] = [
 ];
 
 /**
- * 用户私有 Worker 代理池（从 Cloudflare 部署的 9 个私有 Worker）
+ * 用户私有 Worker 代理池（从 Cloudflare 部署的 10 个私有 Worker）
  */
 export const PRIVATE_WORKER_PROXIES: string[] = [
+  'https://test-mp-proxy-01.myproxy3d45da21.workers.dev',
   'https://mp-proxy-00.myproxy3d45da21.workers.dev',
   'https://mp-proxy-01.myproxy3d45da21.workers.dev',
   'https://mp-proxy-02.myproxy3d45da21.workers.dev',
