@@ -1,0 +1,36 @@
+{
+  "name": "wechat-mp-monitor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "wechat-mp-monitor": "./bin/wechat-mp-monitor"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && mkdir -p dist/src/lib/storage && cp src/lib/storage/schema.sql dist/src/lib/storage/schema.sql",
+    "dev": "node --import tsx ./src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "cheerio": "^1.1.2",
+    "commander": "^14.0.0",
+    "pngjs": "^7.0.0",
+    "set-cookie-parser": "^2.7.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^24.0.15",
+    "@types/pngjs": "^6.0.5",
+    "@types/qrcode-terminal": "^0.12.2",
+    "qrcode-terminal": "^0.12.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
