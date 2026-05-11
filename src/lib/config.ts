@@ -16,7 +16,7 @@ export const WECHAT_ORIGIN = 'https://mp.weixin.qq.com';
 export const WECHAT_REFERER = 'https://mp.weixin.qq.com/';
 
 // 搜索公众号间隔（避免风控）
-export const DEFAULT_ACCOUNT_SEARCH_DELAY_MS = 5000;
+export const DEFAULT_ACCOUNT_SEARCH_DELAY_MS = 30000;
 
 // 同步文章列表分页延迟（避免风控）
 export const DEFAULT_SYNC_DELAY_MS = 5000;

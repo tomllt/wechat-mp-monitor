@@ -97,6 +97,7 @@ export function registerKeywordDownloadCommand(program: Command): void {
     const watchAccounts: Array<{ fakeid: string; nickname: string; account: WeChatAccount }> = [];
     const accountBloom = new BloomFilter();
     const fakeidBloom = new BloomFilter();
+    let searchDelayMs = DEFAULT_ACCOUNT_SEARCH_DELAY_MS;
 
     for (const acc of accounts) {
       const officialName = (acc.officialAccount ?? '').trim();
@@ -149,10 +150,14 @@ export function registerKeywordDownloadCommand(program: Command): void {
           console.log(`   ⚠️  ${officialName} 无搜索结果`);
         }
       } catch (error: any) {
-        console.log(`   ❌ ${officialName} 搜索失败: ${error.message}`);
+        const message = error?.message ?? String(error);
+        console.log(`   ❌ ${officialName} 搜索失败: ${message}`);
+        if (message.includes('200013')) {
+          searchDelayMs = Math.min(Math.max(searchDelayMs * 2, DEFAULT_ACCOUNT_SEARCH_DELAY_MS), 120000);
+        }
       }
 
-      await new Promise(r => setTimeout(r, DEFAULT_ACCOUNT_SEARCH_DELAY_MS));
+      await new Promise(r => setTimeout(r, searchDelayMs));
     }
 
     if (watchAccounts.length === 0) {
