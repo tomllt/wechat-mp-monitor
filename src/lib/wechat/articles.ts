@@ -1,4 +1,4 @@
-import { DEFAULT_SYNC_DELAY_MS, SYNC_PAGE_SIZE, getConcurrency, getProxyMode } from '../config.js';
+import { DEFAULT_SYNC_DELAY_MS, SYNC_PAGE_SIZE, getConcurrency } from '../config.js';
 import {
   createSyncRun,
   createSyncRunItem,
@@ -84,6 +84,8 @@ function toArticleRow(fakeid: string, item: AppMsgEx): Omit<ArticleRow, 'created
   };
 }
 
+import { type EnterpriseInfo } from '../article-exporter.js';
+
 export interface SyncOptions {
   runId?: number;
   limitPages?: number;
@@ -96,6 +98,10 @@ export interface SyncOptions {
   export?: boolean;
   exportFormat?: 'md' | 'word' | 'both';
   exportPath?: string;
+  /**
+   * 企业信息（企业下载模式专用）
+   */
+  enterprise?: EnterpriseInfo;
 }
 
 export async function syncAccount(identifier: string, options: SyncOptions = {}): Promise<{
@@ -183,6 +189,7 @@ export async function syncAccount(identifier: string, options: SyncOptions = {})
         export: options.export,
         exportFormat: options.exportFormat,
         exportPath: options.exportPath,
+        enterprise: options.enterprise,
       };
 
       const promises = contentQueue.map(row =>

@@ -3,7 +3,7 @@ import { articleNormalizedPath, articleRawPath } from '../paths.js';
 import { updateArticleContent, updateArticleFts } from '../storage/db.js';
 import type { ArticleRow, StoredCookie } from '../types.js';
 import { wechatRequest } from './http.js';
-import { globalExporter, type ExportFormat } from '../article-exporter.js';
+import { globalExporter, type ExportFormat, type EnterpriseInfo } from '../article-exporter.js';
 import { getWatchAccount } from '../storage/db.js';
 
 export function validateArticleHtml(html: string): 'success' | 'deleted' | 'invalid' {
@@ -17,12 +17,12 @@ export function validateArticleHtml(html: string): 'success' | 'deleted' | 'inva
 }
 
 export async function fetchArticleHtml(link: string, cookies?: StoredCookie[]): Promise<string> {
-  // 文章正文下载优先使用代理
+  // 文章正文下载优先使用 Worker 下载服务
   const first = await wechatRequest<string>({
     method: 'GET',
     endpoint: link,
     responseType: 'text',
-    forceProxy: true, // 强制使用代理下载正文
+    useDownloadService: true, // 使用 Worker 下载服务获取正文
   });
   if (validateArticleHtml(first.data) === 'success' || !cookies?.length) {
     return first.data;
@@ -32,7 +32,7 @@ export async function fetchArticleHtml(link: string, cookies?: StoredCookie[]): 
     endpoint: link,
     cookies,
     responseType: 'text',
-    forceProxy: true,
+    useDownloadService: true,
   });
   return second.data;
 }
@@ -50,6 +50,10 @@ export interface IngestOptions {
    * 自定义导出目录
    */
   exportPath?: string;
+  /**
+   * 企业信息（企业下载模式专用）
+   */
+  enterprise?: EnterpriseInfo;
 }
 
 export async function ingestArticleHtml(
@@ -134,7 +138,8 @@ export async function ingestArticleHtml(
         article,
         normalizedHtml,
         accountName,
-        options.exportFormat || 'md'
+        options.exportFormat || 'md',
+        options.enterprise
       );
       result.exportedMdPath = exported.mdPath;
       result.exportedWordPath = exported.wordPath;

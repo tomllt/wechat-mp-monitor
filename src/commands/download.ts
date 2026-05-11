@@ -2,9 +2,9 @@ import type { Command } from 'commander';
 import { getArticleByKeys, getArticlesMissingContent, getWatchAccount } from '../lib/storage/db.js';
 import { validateActiveSession, getSessionCookies } from '../lib/wechat/auth.js';
 import { ingestArticleHtml } from '../lib/wechat/article-html.js';
-import { getConcurrency, getProxyMode, getAllWorkerProxies } from '../lib/config.js';
+import { getConcurrency, getAllWorkerServices } from '../lib/config.js';
 import { globalDownloader } from '../lib/concurrent-downloader.js';
-import { globalProxyPool } from '../lib/worker-proxy-pool.js';
+import { globalServicePool } from '../lib/worker-proxy-pool.js';
 
 export function registerDownloadCommand(program: Command): void {
   const download = program.command('download').description('批量下载文章正文');
@@ -18,8 +18,6 @@ export function registerDownloadCommand(program: Command): void {
     .option('--export', '导出文章到本地文件')
     .option('--export-format <format>', '导出格式: md, word, both (默认: md)')
     .option('--export-path <path>', '自定义导出目录')
-    .option('--no-proxy', '禁用代理')
-    .option('--proxy-mode <mode>', '代理模式: none, content, all (默认: content)')
     .option('--health-check', '下载前执行 Worker 健康检查')
     .action(async (options: {
       account?: string;
@@ -28,17 +26,9 @@ export function registerDownloadCommand(program: Command): void {
       export?: boolean;
       exportFormat?: 'md' | 'word' | 'both';
       exportPath?: string;
-      proxy?: boolean;
-      proxyMode?: 'none' | 'content' | 'all';
       healthCheck?: boolean;
     }) => {
       // 设置环境变量
-      if (options.proxyMode) {
-        process.env.PROXY_MODE = options.proxyMode;
-      }
-      if (!options.proxy) {
-        process.env.PROXY_MODE = 'none';
-      }
       if (options.concurrency) {
         process.env.DOWNLOAD_CONCURRENCY = options.concurrency;
       }
@@ -47,8 +37,8 @@ export function registerDownloadCommand(program: Command): void {
       }
 
       // 执行健康检查
-      if (options.healthCheck && getProxyMode() !== 'none') {
-        await globalProxyPool.healthCheckAll();
+      if (options.healthCheck) {
+        await globalServicePool.healthCheckAll();
         console.log();
       }
 
@@ -68,9 +58,8 @@ export function registerDownloadCommand(program: Command): void {
 
       console.log('🚀 开始批量下载...');
       console.log('📋 配置:');
-      console.log(`   代理模式: ${getProxyMode()}`);
       console.log(`   并发数: ${options.concurrency ?? getConcurrency()}`);
-      console.log(`   Worker 数量: ${getAllWorkerProxies().length}`);
+      console.log(`   Worker 服务数量: ${getAllWorkerServices().length}`);
       console.log(`   导出文章: ${options.export ? '是' : '否'}`);
       if (options.export) {
         console.log(`   导出格式: ${options.exportFormat ?? 'md'}`);

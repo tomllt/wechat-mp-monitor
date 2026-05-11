@@ -6,6 +6,7 @@ import { registerQueryCommand } from './commands/query.js';
 import { registerReportCommand } from './commands/report.js';
 import { registerSyncCommand } from './commands/sync.js';
 import { registerDownloadCommand } from './commands/download.js';
+import { registerKeywordDownloadCommand } from './commands/keyword-download.js';
 import { ensureRuntimeDirs } from './lib/paths.js';
 
 async function main() {
@@ -31,6 +32,7 @@ async function main() {
   registerDownloadCommand(program);
   registerQueryCommand(program);
   registerReportCommand(program);
+  registerKeywordDownloadCommand(program);
 
   await program.parseAsync();
 }

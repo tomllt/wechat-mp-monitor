@@ -7,7 +7,7 @@
     "wechat-mp-monitor": "./bin/wechat-mp-monitor"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && mkdir -p dist/src/lib/storage && cp src/lib/storage/schema.sql dist/src/lib/storage/schema.sql",
+    "build": "tsc -p tsconfig.json && mkdir -p dist/src/lib/storage && cp src/lib/storage/schema.sql dist/src/lib/storage/schema.sql && mkdir -p dist/data && cp data/*.json dist/data/ 2>/dev/null || true && cp data/*.txt dist/data/ 2>/dev/null || true",
     "dev": "node --import tsx ./src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest"

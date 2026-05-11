@@ -12,8 +12,14 @@ export type ExportFormat = 'md' | 'word' | 'both';
 
 /**
  * 文章导出器
- * 支持多级目录存储: docs/YYYY/MM/DD/{公众号}/xx.md
+ * 支持多级目录存储: md/YYYY/MM/DD/{企业类型}/{企业名称}/xx.md
+ * 兼容普通模式: md/YYYY/MM/DD/{公众号}/xx.md
  */
+export interface EnterpriseInfo {
+  type: string;    // 企业类型: 央企/民企/地方国企
+  company: string; // 企业名称
+}
+
 export class ArticleExporter {
   private storageRoot: string;
   private turndownService: TurndownService;
@@ -33,9 +39,10 @@ export class ArticleExporter {
     article: ArticleRow,
     html: string,
     accountName: string,
-    format: ExportFormat = 'md'
+    format: ExportFormat = 'md',
+    enterprise?: EnterpriseInfo
   ): Promise<{ mdPath?: string; wordPath?: string }> {
-    const dirPath = this.buildDirectoryPath(article, accountName);
+    const dirPath = this.buildDirectoryPath(article, accountName, enterprise);
     await this.ensureDirectory(dirPath);
 
     const safeTitle = this.sanitizeFilename(article.title);
@@ -62,16 +69,30 @@ export class ArticleExporter {
   }
 
   /**
-   * 构建目录路径: docs/YYYY/MM/DD/{公众号}/
+   * 构建目录路径
+   * 企业模式: {storageRoot}/md/YYYY/MM/DD/{企业类型}/{企业名称}/
+   * 普通模式: {storageRoot}/md/YYYY/MM/DD/{公众号}/
    */
-  private buildDirectoryPath(article: ArticleRow, accountName: string): string {
+  private buildDirectoryPath(
+    article: ArticleRow,
+    accountName: string,
+    enterprise?: EnterpriseInfo
+  ): string {
     const date = new Date(article.create_time * 1000);
     const year = String(date.getFullYear());
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    const safeAccountName = this.sanitizeFilename(accountName);
 
-    return path.join(this.storageRoot, year, month, day, safeAccountName);
+    if (enterprise) {
+      // 企业下载模式: md/YYYY/MM/DD/{企业类型}/{企业名称}/
+      const safeType = this.sanitizeFilename(enterprise.type);
+      const safeCompany = this.sanitizeFilename(enterprise.company);
+      return path.join(this.storageRoot, 'md', year, month, day, safeType, safeCompany);
+    } else {
+      // 普通模式: md/YYYY/MM/DD/{公众号}/
+      const safeAccountName = this.sanitizeFilename(accountName);
+      return path.join(this.storageRoot, 'md', year, month, day, safeAccountName);
+    }
   }
 
   /**

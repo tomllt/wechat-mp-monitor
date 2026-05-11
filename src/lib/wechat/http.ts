@@ -1,6 +1,14 @@
-import { DEFAULT_TIMEOUT_MS, USER_AGENT, WECHAT_ORIGIN, WECHAT_REFERER, getProxyMode, getProxyAuthorization } from '../config.js';
-import { globalProxyPool } from '../worker-proxy-pool.js';
+import { DEFAULT_TIMEOUT_MS, USER_AGENT, WECHAT_ORIGIN, WECHAT_REFERER } from '../config.js';
+import { globalServicePool } from '../worker-proxy-pool.js';
 import type { StoredCookie } from '../types.js';
+
+/**
+ * ⚠️  分发环境约束：无代理，必须使用自定义域名方案
+ * 
+ * - 不能使用 workers.dev + 代理方案
+ * - 所有 Worker 访问必须通过自定义域名
+ * - 当前配置: 00.wechat-art.xyz ~ 19.wechat-art.xyz
+ */
 
 export interface WechatRequestOptions {
   method?: 'GET' | 'POST';
@@ -12,10 +20,10 @@ export interface WechatRequestOptions {
   timeoutMs?: number;
   responseType?: 'json' | 'text' | 'buffer';
   /**
-   * 是否强制使用代理（即使 proxyMode 是 none）
-   * 用于文章正文下载
+   * 是否使用 Worker 文章下载服务
+   * 仅用于文章正文下载，其他请求（登录、获取列表等）不使用
    */
-  forceProxy?: boolean;
+  useDownloadService?: boolean;
 }
 
 export interface WechatResponse<T = unknown> {
@@ -23,7 +31,7 @@ export interface WechatResponse<T = unknown> {
   headers: Headers;
   cookies: StoredCookie[];
   status: number;
-  proxyUsed?: string;
+  serviceUsed?: string;
 }
 
 export function serializeCookies(cookies: StoredCookie[]): string {
@@ -70,49 +78,6 @@ function parseSetCookieHeaders(headers: Headers): StoredCookie[] {
     .filter(cookie => cookie.name);
 }
 
-/**
- * 判断请求是否应该使用代理
- * 登录请求不走代理，仅文章下载可使用代理
- */
-function shouldUseProxy(options: WechatRequestOptions): boolean {
-  const proxyMode = getProxyMode();
-  
-  // 如果全局禁用代理，任何情况都不使用
-  if (proxyMode === 'none') {
-    return false;
-  }
-  
-  // 强制使用代理（用于文章正文下载）
-  if (options.forceProxy) {
-    return true;
-  }
-  
-  if (proxyMode === 'all') {
-    return true;
-  }
-  
-  // content 模式：仅文章内容下载使用代理（由调用方通过 forceProxy 控制）
-  return false;
-}
-
-/**
- * 按照 wechat-article-exporter 标准实现构建 Worker 代理 URL
- * 
- * Worker 是查询参数驱动的定制程序，格式：
- * ${proxy}?url=${encodeURIComponent(url)}&headers=${encodeURIComponent(JSON.stringify(headers))}&authorization=${Authorization}
- */
-function buildWorkerProxyUrl(proxy: string, targetUrl: string, headersObj: Record<string, string>): string {
-  const authorization = getProxyAuthorization();
-  const proxyUrl = new URL(proxy);
-  
-  // 设置查询参数（严格按照 wechat-article-exporter 标准）
-  proxyUrl.searchParams.set('url', targetUrl);
-  proxyUrl.searchParams.set('headers', JSON.stringify(headersObj));
-  proxyUrl.searchParams.set('authorization', authorization);
-  
-  return proxyUrl.toString();
-}
-
 export async function wechatRequest<T = unknown>(options: WechatRequestOptions): Promise<WechatResponse<T>> {
   const method = options.method ?? 'GET';
   const endpoint = new URL(options.endpoint);
@@ -124,7 +89,7 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
     endpoint.searchParams.set(key, String(value));
   }
 
-  // 构建请求头对象（用于传递给 Worker）
+  // 构建请求头对象（用于传递给 Worker 下载服务）
   const headersObj: Record<string, string> = {
     Referer: WECHAT_REFERER,
     Origin: WECHAT_ORIGIN,
@@ -154,16 +119,17 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
 
   let finalUrl = endpoint.toString();
-  let proxyUsed: string | undefined;
+  let serviceUsed: string | undefined;
   let finalHeaders = headers;
 
-  // 判断是否使用代理（严格按照 wechat-article-exporter 标准实现）
-  if (shouldUseProxy(options)) {
-    proxyUsed = globalProxyPool.getBestProxy();
-    if (proxyUsed) {
-      // Worker 是查询参数驱动的定制程序
-      finalUrl = buildWorkerProxyUrl(proxyUsed, endpoint.toString(), headersObj);
-      // 当使用 Worker 代理时，不再需要设置请求头，因为 Worker 会自己处理
+  // 仅当明确设置 useDownloadService 时才使用 Worker 下载服务
+  // 仅限文章正文下载使用，其他请求（登录、获取列表等）直接请求
+  if (options.useDownloadService) {
+    serviceUsed = globalServicePool.getBestService();
+    if (serviceUsed) {
+      // Worker 是查询参数驱动的定制文章下载服务
+      finalUrl = globalServicePool.buildServiceUrl(serviceUsed, endpoint.toString(), headersObj);
+      // 当使用 Worker 下载服务时，不再需要设置请求头，因为 Worker 会自己处理
       finalHeaders = new Headers();
     }
   }
@@ -192,9 +158,9 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
         break;
     }
 
-    // 记录代理成功
-    if (proxyUsed) {
-      globalProxyPool.recordSuccess(proxyUsed);
+    // 记录服务成功
+    if (serviceUsed) {
+      globalServicePool.recordSuccess(serviceUsed);
     }
 
     return {
@@ -202,12 +168,12 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
       headers: response.headers,
       cookies,
       status: response.status,
-      proxyUsed,
+      serviceUsed,
     };
   } catch (error) {
-    // 记录代理失败
-    if (proxyUsed) {
-      globalProxyPool.recordFailure(proxyUsed);
+    // 记录服务失败
+    if (serviceUsed) {
+      globalServicePool.recordFailure(serviceUsed);
     }
     throw error;
   } finally {

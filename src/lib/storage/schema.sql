@@ -104,3 +104,31 @@ CREATE VIRTUAL TABLE IF NOT EXISTS article_fts USING fts5(
   fakeid UNINDEXED,
   aid UNINDEXED
 );
+
+-- 关键词过滤后的文章表
+CREATE TABLE IF NOT EXISTS articles_filter (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  article_id INTEGER NOT NULL,
+  fakeid TEXT NOT NULL,
+  aid TEXT NOT NULL,
+  title TEXT NOT NULL,
+  digest TEXT,
+  author_name TEXT,
+  link TEXT NOT NULL,
+  cover TEXT,
+  create_time INTEGER NOT NULL,
+  raw_html TEXT,
+  normalized_html TEXT,
+  html TEXT,
+  html_format TEXT,
+  matched_keywords TEXT,
+  match_score INTEGER NOT NULL DEFAULT 0,
+  fetched_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (article_id) REFERENCES article(id) ON DELETE CASCADE,
+  UNIQUE(fakeid, aid)
+);
+
+CREATE INDEX IF NOT EXISTS idx_articles_filter_create_time ON articles_filter(create_time DESC);
+CREATE INDEX IF NOT EXISTS idx_articles_filter_match_score ON articles_filter(match_score DESC);

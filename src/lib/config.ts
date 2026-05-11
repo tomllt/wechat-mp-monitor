@@ -67,75 +67,50 @@ export const COOLDOWN_PERIOD_MS = 60000;
 export const MAX_FAILURES_BEFORE_COOLDOWN = 3;
 
 /**
- * 用户私有 Cloudflare Worker 代理列表
+ * 用户私有 Cloudflare Worker 文章下载服务列表
  * 
  * 注意：由于中国大陆 DNS 污染，*.workers.dev 域名可能无法访问
  * 建议绑定自定义域名使用，例如：https://01.your-custom-domain.com
  * 
- * 如需配置私有代理，请设置环境变量 WECHAT_MP_PRIVATE_PROXIES
- * 多个代理用逗号分隔，例如：
- * export WECHAT_MP_PRIVATE_PROXIES="https://01.your-domain.com,https://02.your-domain.com"
+ * 如需配置私有服务，请设置环境变量 WECHAT_MP_PRIVATE_SERVICES
+ * 多个服务用逗号分隔，例如：
+ * export WECHAT_MP_PRIVATE_SERVICES="https://01.your-domain.com,https://02.your-domain.com"
  * 
  * 或者在代码中配置（不推荐，可能泄露到 Git）：
- * export const PRIVATE_WORKER_PROXIES: string[] = [
+ * export const PRIVATE_WORKER_SERVICES: string[] = [
  *   'https://01.your-custom-domain.com',
  * ];
  */
-export const PRIVATE_WORKER_PROXIES: string[] = [];
+export const PRIVATE_WORKER_SERVICES: string[] = [];
 
 /**
- * 私有代理授权密钥（如需要）
- * 设置环境变量 WECHAT_MP_PROXY_AUTHORIZATION
+ * 私有服务授权密钥（如需要）
+ * 设置环境变量 WECHAT_MP_SERVICE_AUTHORIZATION
  */
-export const PRIVATE_PROXY_AUTHORIZATION = process.env.WECHAT_MP_PROXY_AUTHORIZATION || '';
+export const PRIVATE_SERVICE_AUTHORIZATION = process.env.WECHAT_MP_SERVICE_AUTHORIZATION || '';
 
 /**
- * 获取所有可用的 Worker 代理
- * 优先级：环境变量配置 > 内置私有代理 > 内置公共代理
+ * 获取所有可用的 Worker 文章下载服务
+ * 优先级：环境变量配置 > 内置私有服务 > 内置公共服务
  */
-export function getAllWorkerProxies(): string[] {
+export function getAllWorkerServices(): string[] {
   // 从环境变量读取
-  const envProxies = process.env.WECHAT_MP_PRIVATE_PROXIES
-    ? process.env.WECHAT_MP_PRIVATE_PROXIES.split(',').map(s => s.trim()).filter(Boolean)
+  const envServices = process.env.WECHAT_MP_PRIVATE_SERVICES
+    ? process.env.WECHAT_MP_PRIVATE_SERVICES.split(',').map(s => s.trim()).filter(Boolean)
     : [];
 
-  if (envProxies.length > 0) {
-    return envProxies;
+  if (envServices.length > 0) {
+    return envServices;
   }
 
-  // 返回内置私有代理（如果有）
-  if (PRIVATE_WORKER_PROXIES.length > 0) {
-    return PRIVATE_WORKER_PROXIES;
+  // 返回内置私有服务（如果有）
+  if (PRIVATE_WORKER_SERVICES.length > 0) {
+    return PRIVATE_WORKER_SERVICES;
   }
 
-  // 没有私有代理时返回空，公共代理会在运行时动态加载
+  // 没有私有服务时返回空，公共服务会在运行时动态加载
   return [];
 }
-
-/**
- * 代理模式
- * - none: 不使用代理（直接连接）
- * - content: 仅文章内容使用代理（默认）
- * - all: 所有请求都使用代理
- */
-export type ProxyMode = 'none' | 'content' | 'all';
-
-/**
- * 获取当前代理模式
- * 可通过环境变量 WECHAT_MP_PROXY_MODE 设置
- */
-export function getProxyMode(): ProxyMode {
-  const mode = process.env.WECHAT_MP_PROXY_MODE?.toLowerCase() ?? 'content';
-  if (['none', 'content', 'all'].includes(mode)) {
-    return mode as ProxyMode;
-  }
-  return 'content';
-}
-
-/**
- * 获取代理授权密钥
- * 可通过环境变量 WECHAT_MP_PROXY_AUTHORIZATION 设置
- */
 
 /**
  * 获取下载并发数
@@ -152,8 +127,12 @@ export function getConcurrency(): number {
   return DEFAULT_CONCURRENCY;
 }
 
-export function getProxyAuthorization(): string {
-  return process.env.WECHAT_MP_PROXY_AUTHORIZATION ?? '';
+/**
+ * 获取服务授权密钥
+ * 可通过环境变量 WECHAT_MP_SERVICE_AUTHORIZATION 设置
+ */
+export function getServiceAuthorization(): string {
+  return process.env.WECHAT_MP_SERVICE_AUTHORIZATION ?? '';
 }
 
 export default {
@@ -176,7 +155,6 @@ export default {
   DEFAULT_MAX_RETRIES,
   COOLDOWN_PERIOD_MS,
   MAX_FAILURES_BEFORE_COOLDOWN,
-  getAllWorkerProxies,
-  getProxyMode,
-  getProxyAuthorization,
+  getAllWorkerServices,
+  getServiceAuthorization,
 };
