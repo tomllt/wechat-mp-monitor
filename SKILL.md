@@ -665,7 +665,48 @@ setupProxy();
 
 **实践结论（wechat-art.xyz 自定义域名池）**：
 - 根路径返回 `400 Bad Request` 不应判定为故障。
-- 19/20 节点返回 400 代表 19 个节点在线可用；个别节点返回 000 通常是 DNS 传播未完成。
+- 20/20 节点返回 400 代表 20 个节点在线可用。
+- 若正文下载偶发 `TypeError: fetch failed`，仍要继续查看底层 `cause`，避免把单次网络抖动误判为整池不可用。
+
+### 正文下载异常诊断：`fetch failed` vs 微信“环境异常”页
+
+当后台任务持续打印：
+
+```bash
+下载文章失败 [AID]: fetch failed
+```
+
+不要只看表层报错。应按下面步骤区分真实原因：
+
+1. 从 `article` 表取失败样本的 `aid` / `link`
+2. 用 `fetchArticleHtml(link)` 单独复现
+3. 打印异常的 `cause.message` / `cause.code`
+4. 若请求成功返回 HTML，再用 `validateArticleHtml()` 判断是否为正文
+5. 额外检查 HTML 是否包含：`环境异常`、`去验证`
+
+**已验证的两类根因**：
+
+- **节点级网络失败**：
+  - 典型表现：`TypeError: fetch failed`
+  - 深层原因：`getaddrinfo ENOTFOUND 17.wechat-art.xyz`
+  - 结论：单个自定义域名节点 DNS 未生效，应从池中临时移除或等待传播
+
+- **微信风控验证页**：
+  - 典型表现：请求返回 HTML，长度正常，但 `validateArticleHtml()` = `invalid`
+  - 页面特征：
+    - `<h2 class="weui-msg__title">环境异常</h2>`
+    - `当前环境异常，完成验证后即可继续访问。`
+    - `去验证`
+  - 结论：这不是 Worker 挂了，也不是代码语法问题，而是微信把当前下载环境拦成了验证页
+
+**抽样经验（pending 文章样本）**：
+- 50 篇样本里，49 篇是“环境异常”验证页，1 篇是 `ENOTFOUND 17.wechat-art.xyz`
+- 因此当进程还在运行但 `articles_filter` 长时间为 0 时，往往是**风控导致无有效正文产出**，不是单纯卡住
+
+**处理优先级**：
+1. 先排除坏节点（如 17 号 DNS 未生效）
+2. 再判断是否大面积命中微信“环境异常”页
+3. 若是风控主因，不要盲目继续高并发重试；应降低请求密度或换更稳环境/策略
 
 ### Node.js 升级后的原生模块修复
 

@@ -16,9 +16,9 @@
  *   - 所有节点均已验证 DNS + SSL 100% 可用
  * 
  * 📊 节点状态 (2026-05-11 验证):
- *   - DNS 解析: 19/20 成功 (17号传播中)
- *   - SSL 证书: 19/19 成功签发
- *   - 健康检查: 19/19 返回 ok
+ *   - DNS 解析: 20/20 成功
+ *   - SSL 证书: 20/20 成功签发
+ *   - 根路径健康检查: 20/20 返回 400（缺少参数属正常在线）
  */
 
 export const PRIVATE_PROXY_LIST: string[] = [
@@ -39,7 +39,7 @@ export const PRIVATE_PROXY_LIST: string[] = [
   'https://14.wechat-art.xyz',
   'https://15.wechat-art.xyz',
   'https://16.wechat-art.xyz',
-  'https://17.wechat-art.xyz', // DNS 传播中，很快生效
+  'https://17.wechat-art.xyz',
   'https://18.wechat-art.xyz',
   'https://19.wechat-art.xyz',
 ];
