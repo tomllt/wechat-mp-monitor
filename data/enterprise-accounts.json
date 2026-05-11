@@ -1,0 +1,1562 @@
+[
+  {
+    "rank": 1,
+    "company": "国家电网有限公司",
+    "type": "央企",
+    "official_account": "国家电网",
+    "service_account": "网上国网 95598",
+    "mini_program": "网上国网"
+  },
+  {
+    "rank": 2,
+    "company": "中国石油天然气集团有限公司",
+    "type": "央企",
+    "official_account": "中国石油",
+    "service_account": "中油好客 e 站",
+    "mini_program": "中油好客 e 站"
+  },
+  {
+    "rank": 3,
+    "company": "中国石油化工集团有限公司",
+    "type": "央企",
+    "official_account": "中国石化",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 4,
+    "company": "中国建筑股份有限公司",
+    "type": "央企",
+    "official_account": "中国建筑",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 5,
+    "company": "中国工商银行股份有限公司",
+    "type": "央企",
+    "official_account": "中国工商银行",
+    "service_account": "中国工商银行客户服务",
+    "mini_program": "工行服务"
+  },
+  {
+    "rank": 6,
+    "company": "中国农业银行股份有限公司",
+    "type": "央企",
+    "official_account": "中国农业银行",
+    "service_account": "中国农业银行股份有限公司",
+    "mini_program": "农行微服务"
+  },
+  {
+    "rank": 7,
+    "company": "中国建设银行股份有限公司",
+    "type": "央企",
+    "official_account": "今日建行",
+    "service_account": "中国建设银行",
+    "mini_program": "中国建设银行"
+  },
+  {
+    "rank": 8,
+    "company": "中国银行股份有限公司",
+    "type": "央企",
+    "official_account": "中国银行",
+    "service_account": "中国银行微银行",
+    "mini_program": "中行微服务"
+  },
+  {
+    "rank": 9,
+    "company": "中国铁路工程集团有限公司",
+    "type": "央企",
+    "official_account": "中国中铁",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 10,
+    "company": "京东集团股份有限公司",
+    "type": "民企",
+    "official_account": "京东",
+    "service_account": null,
+    "mini_program": "京东购物"
+  },
+  {
+    "rank": 11,
+    "company": "中国铁道建筑集团有限公司",
+    "type": "央企",
+    "official_account": "中国铁建",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 12,
+    "company": "中国移动通信集团有限公司",
+    "type": "央企",
+    "official_account": "中国移动",
+    "service_account": "中国移动10086",
+    "mini_program": "中国移动10086+"
+  },
+  {
+    "rank": 13,
+    "company": "中国交通建设集团有限公司",
+    "type": "央企",
+    "official_account": "中国交建",
+    "service_account": "中国交建",
+    "mini_program": "中国交建"
+  },
+  {
+    "rank": 14,
+    "company": "中国中信集团有限公司",
+    "type": "央企",
+    "official_account": "中信集团",
+    "service_account": "中信CITIC",
+    "mini_program": null
+  },
+  {
+    "rank": 15,
+    "company": "阿里巴巴集团控股有限公司",
+    "type": "民企",
+    "official_account": "阿里巴巴",
+    "service_account": null,
+    "mini_program": "阿里巴巴"
+  },
+  {
+    "rank": 16,
+    "company": "中国海洋石油集团有限公司",
+    "type": "央企",
+    "official_account": "中国海油",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 17,
+    "company": "中国华润有限公司",
+    "type": "央企",
+    "official_account": "华润",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 18,
+    "company": "中国宝武钢铁集团有限公司",
+    "type": "央企",
+    "official_account": "中国宝武",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 19,
+    "company": "恒力集团有限公司",
+    "type": "民企",
+    "official_account": "恒力集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 20,
+    "company": "山东能源集团有限公司",
+    "type": "地方国企",
+    "official_account": "山东能源",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 21,
+    "company": "华为投资控股有限公司",
+    "type": "民企",
+    "official_account": "华为",
+    "service_account": null,
+    "mini_program": "华为商城"
+  },
+  {
+    "rank": 22,
+    "company": "中国南方电网有限责任公司",
+    "type": "央企",
+    "official_account": "南网50Hz",
+    "service_account": "南网在线",
+    "mini_program": "南网在线"
+  },
+  {
+    "rank": 23,
+    "company": "中国五矿集团有限公司",
+    "type": "央企",
+    "official_account": "中国五矿集团有限公司",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 24,
+    "company": "比亚迪股份有限公司",
+    "type": "民企",
+    "official_account": "比亚迪",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 25,
+    "company": "国家能源投资集团有限责任公司",
+    "type": "央企",
+    "official_account": "国家能源之声",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 26,
+    "company": "厦门建发集团有限公司",
+    "type": "地方国企",
+    "official_account": "厦门建发集团有限公司、建发集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 27,
+    "company": "中国电力建设集团有限公司",
+    "type": "央企",
+    "official_account": "中国电建",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 28,
+    "company": "中国中化控股有限责任公司",
+    "type": "央企",
+    "official_account": "中国中化",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 29,
+    "company": "中国化工集团有限公司",
+    "type": "央企",
+    "official_account": "中国化学工程集团有限公司",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 30,
+    "company": "中国铝业集团有限公司",
+    "type": "央企",
+    "official_account": "中国铝业、今日中铝",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 31,
+    "company": "中国远洋海运集团有限公司",
+    "type": "央企",
+    "official_account": "中远海运、中国远洋海运报媒体",
+    "service_account": "中远海运中远海运员工服务平台",
+    "mini_program": null
+  },
+  {
+    "rank": 32,
+    "company": "中国航空工业集团有限公司",
+    "type": "央企",
+    "official_account": "中国航空工业集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 33,
+    "company": "中国兵器工业集团有限公司",
+    "type": "央企",
+    "official_account": "中国兵器工业集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 34,
+    "company": "中国电子信息产业集团有限公司",
+    "type": "央企",
+    "official_account": "CEC中国电子",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 35,
+    "company": "中国兵器装备集团有限公司",
+    "type": "央企",
+    "official_account": "中国兵器装备",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 36,
+    "company": "中国核工业集团有限公司",
+    "type": "央企",
+    "official_account": "中核集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 37,
+    "company": "中国航天科技集团有限公司",
+    "type": "央企",
+    "official_account": "中国航天科技集团、航天科技产业",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 38,
+    "company": "中国航天科工集团有限公司",
+    "type": "央企",
+    "official_account": "中国航天科工",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 39,
+    "company": "中国船舶集团有限公司",
+    "type": "央企",
+    "official_account": "中国船舶",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 40,
+    "company": "中国航空发动机集团有限公司",
+    "type": "央企",
+    "official_account": "中国航发",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 41,
+    "company": "中国建筑材料集团有限公司",
+    "type": "央企",
+    "official_account": "中国建材",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 42,
+    "company": "中国有色矿业集团有限公司",
+    "type": "央企",
+    "official_account": "中国有色集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 43,
+    "company": "中国通用技术（集团）控股有限责任公司",
+    "type": "央企",
+    "official_account": "通用技术集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 44,
+    "company": "中国大唐集团有限公司",
+    "type": "央企",
+    "official_account": "中国大唐集团公司",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 45,
+    "company": "中国华能集团有限公司",
+    "type": "央企",
+    "official_account": "中国华能",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 46,
+    "company": "陕西煤业化工集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "陕煤集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 47,
+    "company": "中国华电集团有限公司",
+    "type": "央企",
+    "official_account": "中国华电",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 48,
+    "company": "国家电力投资集团有限公司",
+    "type": "央企",
+    "official_account": "国家电力投资集团有限公司",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 49,
+    "company": "中国能源建设集团有限公司",
+    "type": "央企",
+    "official_account": "中国能建",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 50,
+    "company": "奇瑞控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "奇瑞集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 51,
+    "company": "物产中大集团股份有限公司",
+    "type": "地方国企",
+    "official_account": "物产中大集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 52,
+    "company": "上海汽车集团股份有限公司",
+    "type": "地方国企",
+    "official_account": "上汽集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 53,
+    "company": "江苏沙钢集团有限公司",
+    "type": "民企",
+    "official_account": "沙钢集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 54,
+    "company": "兴业银行股份有限公司",
+    "type": "地方国企",
+    "official_account": "兴业银行私人银行",
+    "service_account": "兴业银行",
+    "mini_program": "兴业银行"
+  },
+  {
+    "rank": 55,
+    "company": "厦门国贸控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "国贸控股集团、厦门国贸集团股份有限公司",
+    "service_account": null,
+    "mini_program": "厦门国贸集团股份有限公司"
+  },
+  {
+    "rank": 56,
+    "company": "中国邮政集团有限公司",
+    "type": "央企",
+    "official_account": "中国邮政",
+    "service_account": "中国邮政微邮局",
+    "mini_program": "中国邮政商城"
+  },
+  {
+    "rank": 57,
+    "company": "中国人寿保险（集团）公司",
+    "type": "央企",
+    "official_account": "中国人寿",
+    "service_account": "中国人寿保险",
+    "mini_program": "中国人寿微官方"
+  },
+  {
+    "rank": 58,
+    "company": "中国太平保险集团有限责任公司",
+    "type": "央企",
+    "official_account": "共享太平、中国太平微服务",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 59,
+    "company": "中国人民保险集团股份有限公司",
+    "type": "央企",
+    "official_account": "人民保险、人保财险",
+    "service_account": "中国人民保险",
+    "mini_program": null
+  },
+  {
+    "rank": 61,
+    "company": "浙江吉利控股集团有限公司",
+    "type": "民企",
+    "official_account": "吉利控股集团",
+    "service_account": "吉利控股集团服务号、吉利控股集团媒体中心",
+    "mini_program": null
+  },
+  {
+    "rank": 63,
+    "company": "鞍钢集团有限公司",
+    "type": "央企",
+    "official_account": "鞍山钢铁集团有限公司",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 64,
+    "company": "首钢集团有限公司",
+    "type": "央企",
+    "official_account": "首钢集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 65,
+    "company": "上海建工集团股份有限公司",
+    "type": "地方国企",
+    "official_account": "上海建工",
+    "service_account": "上海建工海外地产",
+    "mini_program": null
+  },
+  {
+    "rank": 66,
+    "company": "中国机械工业集团有限公司",
+    "type": "央企",
+    "official_account": "国机集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 67,
+    "company": "中国旅游集团有限公司",
+    "type": "央企",
+    "official_account": "中国旅游集团",
+    "service_account": null,
+    "mini_program": "中旅旅行"
+  },
+  {
+    "rank": 69,
+    "company": "小米集团",
+    "type": "民企",
+    "official_account": "小米公司",
+    "service_account": null,
+    "mini_program": "小米商城"
+  },
+  {
+    "rank": 70,
+    "company": "顺丰控股股份有限公司",
+    "type": "民企",
+    "official_account": "顺丰速运",
+    "service_account": null,
+    "mini_program": "顺丰速运+"
+  },
+  {
+    "rank": 71,
+    "company": "河北建设集团股份有限公司",
+    "type": "民企",
+    "official_account": "河北建设集团股份有限公司",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 72,
+    "company": "恒信汽车集团股份有限公司",
+    "type": "民企",
+    "official_account": "恒信汽车集团",
+    "service_account": "恒信车管家",
+    "mini_program": "恒信车管家"
+  },
+  {
+    "rank": 73,
+    "company": "联想控股股份有限公司",
+    "type": "民企",
+    "official_account": "联想控股微空间",
+    "service_account": "联想控股微招聘",
+    "mini_program": null
+  },
+  {
+    "rank": 74,
+    "company": "通威集团有限公司",
+    "type": "民企",
+    "official_account": "通威集团",
+    "service_account": "通威股份服务号",
+    "mini_program": null
+  },
+  {
+    "rank": 75,
+    "company": "美的集团股份有限公司",
+    "type": "民企",
+    "official_account": "美的集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 76,
+    "company": "格力电器股份有限公司",
+    "type": "民企",
+    "official_account": "格力电器",
+    "service_account": "格力服务",
+    "mini_program": "格力 +"
+  },
+  {
+    "rank": 77,
+    "company": "海信集团控股股份有限公司",
+    "type": "地方国企",
+    "official_account": "Hisense有信",
+    "service_account": "海信",
+    "mini_program": null
+  },
+  {
+    "rank": 78,
+    "company": "TCL 科技集团股份有限公司",
+    "type": "民企",
+    "official_account": "TCL科技",
+    "service_account": "TCL官方",
+    "mini_program": null
+  },
+  {
+    "rank": 79,
+    "company": "创维集团有限公司",
+    "type": "民企",
+    "official_account": "创维集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 81,
+    "company": "新希望集团有限公司",
+    "type": "民企",
+    "official_account": "新希望集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 83,
+    "company": "荣盛控股股份有限公司",
+    "type": "民企",
+    "official_account": "荣盛控股",
+    "service_account": "荣盛控股集团",
+    "mini_program": "荣盛控股电商平台"
+  },
+  {
+    "rank": 84,
+    "company": "中南控股集团有限公司",
+    "type": "民企",
+    "official_account": "中南控股集团",
+    "service_account": "中南控股集团有限公司",
+    "mini_program": null
+  },
+  {
+    "rank": 85,
+    "company": "中天控股集团有限公司",
+    "type": "民企",
+    "official_account": "中天人",
+    "service_account": "中天控股集团",
+    "mini_program": null
+  },
+  {
+    "rank": 86,
+    "company": "东方航空集团有限公司",
+    "type": "央企",
+    "official_account": "中国东航",
+    "service_account": "中国东方航空",
+    "mini_program": "中国东方航空"
+  },
+  {
+    "rank": 87,
+    "company": "南方航空集团有限公司",
+    "type": "央企",
+    "official_account": "南航飞行",
+    "service_account": "中国南方航空",
+    "mini_program": "中国南方航空、南航e家"
+  },
+  {
+    "rank": 88,
+    "company": "中国国际航空集团有限公司",
+    "type": "央企",
+    "official_account": "中国国航",
+    "service_account": "中国国际航空",
+    "mini_program": "中国国际航空"
+  },
+  {
+    "rank": 89,
+    "company": "海南航空控股股份有限公司",
+    "type": "民企",
+    "official_account": "新海航|海南航空HainanAirlines",
+    "service_account": "新海航｜海南航空",
+    "mini_program": "海南航空"
+  },
+  {
+    "rank": 90,
+    "company": "春秋航空股份有限公司",
+    "type": "民企",
+    "official_account": "春秋航空订阅号",
+    "service_account": "春秋航空",
+    "mini_program": null
+  },
+  {
+    "rank": 91,
+    "company": "青岛海尔智能家电科技有限公司",
+    "type": "民企",
+    "official_account": "海尔全屋智能",
+    "service_account": "智能家电服务",
+    "mini_program": null
+  },
+  {
+    "rank": 92,
+    "company": "山东魏桥创业集团有限公司",
+    "type": "民企",
+    "official_account": "魏桥创业",
+    "service_account": "魏桥创业集团",
+    "mini_program": null
+  },
+  {
+    "rank": 93,
+    "company": "临沂新程金锣肉制品集团有限公司",
+    "type": "民企",
+    "official_account": "金锣官微、金锣生鲜",
+    "service_account": "金锣集团",
+    "mini_program": "金锣服务平台"
+  },
+  {
+    "rank": 94,
+    "company": "北京汽车集团有限公司",
+    "type": "地方国企",
+    "official_account": "北汽集团",
+    "service_account": "北汽BAIC",
+    "mini_program": null
+  },
+  {
+    "rank": 95,
+    "company": "广州汽车集团股份有限公司",
+    "type": "地方国企",
+    "official_account": "广汽集团",
+    "service_account": "广汽集团服务号",
+    "mini_program": null
+  },
+  {
+    "rank": 96,
+    "company": "东风汽车集团有限公司",
+    "type": "央企",
+    "official_account": "东风汽车",
+    "service_account": "东风汽车招聘",
+    "mini_program": null
+  },
+  {
+    "rank": 97,
+    "company": "长安汽车集团股份有限公司",
+    "type": "央企",
+    "official_account": "长安汽车",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 98,
+    "company": "中国保利集团有限公司",
+    "type": "央企",
+    "official_account": "中国保利",
+    "service_account": "Poly Group",
+    "mini_program": null
+  },
+  {
+    "rank": 99,
+    "company": "华侨城集团有限公司",
+    "type": "央企",
+    "official_account": "华侨城旅游",
+    "service_account": "华侨城服务",
+    "mini_program": null
+  },
+  {
+    "rank": 100,
+    "company": "大悦城控股集团股份有限公司",
+    "type": "央企",
+    "official_account": "大悦城控股",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 101,
+    "company": "北京建龙重工集团有限公司",
+    "type": "民企",
+    "official_account": "建龙集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 102,
+    "company": "南京钢铁集团有限公司",
+    "type": "地方国企",
+    "official_account": "南钢集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 103,
+    "company": "杭州钢铁集团有限公司",
+    "type": "地方国企",
+    "official_account": "今日杭钢",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 104,
+    "company": "天津渤海化工集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "渤化集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 105,
+    "company": "北京金隅集团股份有限公司",
+    "type": "地方国企",
+    "official_account": "金隅资讯",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 106,
+    "company": "安徽海螺集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "海螺集团、海螺发布",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 107,
+    "company": "北京首农食品集团有限公司",
+    "type": "地方国企",
+    "official_account": "首农食品集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 108,
+    "company": "天津荣程祥泰投资控股集团有限公司",
+    "type": "民企",
+    "official_account": "荣程集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 109,
+    "company": "上海医药集团股份有限公司",
+    "type": "地方国企",
+    "official_account": "上海医药",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 110,
+    "company": "云南投资控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "云投集团",
+    "service_account": null,
+    "mini_program": null
+  },
+  {
+    "rank": 111,
+    "company": "贵州茅台集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "茅台",
+    "service_account": "茅台",
+    "mini_program": "茅台云上品鉴"
+  },
+  {
+    "rank": 112,
+    "company": "五粮液集团有限公司",
+    "type": "地方国企",
+    "official_account": "五粮液",
+    "service_account": "五粮液",
+    "mini_program": "五粮液官方商城"
+  },
+  {
+    "rank": 113,
+    "company": "泸州老窖集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "泸州老窖",
+    "service_account": "老窖",
+    "mini_program": "泸州老窖会员"
+  },
+  {
+    "rank": 114,
+    "company": "山西焦煤集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "山西焦煤",
+    "service_account": "焦煤",
+    "mini_program": "焦煤资讯"
+  },
+  {
+    "rank": 115,
+    "company": "晋能控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "晋能控股",
+    "service_account": "晋能",
+    "mini_program": "晋能能源"
+  },
+  {
+    "rank": 116,
+    "company": "河南能源化工集团有限公司",
+    "type": "地方国企",
+    "official_account": "豫能化集团",
+    "service_account": "豫能",
+    "mini_program": "豫能化工"
+  },
+  {
+    "rank": 117,
+    "company": "山东重工集团有限公司",
+    "type": "地方国企",
+    "official_account": "山东重工",
+    "service_account": "重工",
+    "mini_program": "山重装备"
+  },
+  {
+    "rank": 118,
+    "company": "潍柴控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "潍柴集团",
+    "service_account": "潍柴",
+    "mini_program": "潍柴动力"
+  },
+  {
+    "rank": 119,
+    "company": "三一重工股份有限公司",
+    "type": "民企",
+    "official_account": "三一重工",
+    "service_account": "三一",
+    "mini_program": "三一云服务"
+  },
+  {
+    "rank": 120,
+    "company": "中联重科股份有限公司",
+    "type": "民企",
+    "official_account": "中联重科",
+    "service_account": "中联",
+    "mini_program": "中联商城"
+  },
+  {
+    "rank": 121,
+    "company": "徐工集团工程机械股份有限公司",
+    "type": "地方国企",
+    "official_account": "徐工集团",
+    "service_account": "徐工",
+    "mini_program": "徐工起重"
+  },
+  {
+    "rank": 122,
+    "company": "龙光集团有限公司",
+    "type": "民企",
+    "official_account": "龙光集团",
+    "service_account": "龙光",
+    "mini_program": "龙光生活"
+  },
+  {
+    "rank": 123,
+    "company": "雅居乐集团控股有限公司",
+    "type": "民企",
+    "official_account": "雅居乐",
+    "service_account": "雅居乐",
+    "mini_program": "雅居乐物业"
+  },
+  {
+    "rank": 124,
+    "company": "碧桂园控股有限公司",
+    "type": "民企",
+    "official_account": "碧桂园",
+    "service_account": "碧桂园",
+    "mini_program": "碧桂园生活"
+  },
+  {
+    "rank": 125,
+    "company": "融创中国控股有限公司",
+    "type": "民企",
+    "official_account": "融创",
+    "service_account": "融创",
+    "mini_program": "融创文旅"
+  },
+  {
+    "rank": 126,
+    "company": "龙湖集团控股有限公司",
+    "type": "民企",
+    "official_account": "龙湖集团",
+    "service_account": "龙湖",
+    "mini_program": "龙湖 U 享家"
+  },
+  {
+    "rank": 127,
+    "company": "新城控股集团股份有限公司",
+    "type": "民企",
+    "official_account": "新城控股",
+    "service_account": "新城",
+    "mini_program": "新城吾悦广场"
+  },
+  {
+    "rank": 128,
+    "company": "金科地产集团股份有限公司",
+    "type": "民企",
+    "official_account": "金科集团",
+    "service_account": "金科",
+    "mini_program": "金科美好生活"
+  },
+  {
+    "rank": 129,
+    "company": "华夏幸福基业股份有限公司",
+    "type": "民企",
+    "official_account": "华夏幸福",
+    "service_account": "华夏幸福",
+    "mini_program": "幸福生活家"
+  },
+  {
+    "rank": 130,
+    "company": "中梁控股集团有限公司",
+    "type": "民企",
+    "official_account": "中梁控股",
+    "service_account": "中梁",
+    "mini_program": "中梁会"
+  },
+  {
+    "rank": 131,
+    "company": "东方集团股份有限公司",
+    "type": "民企",
+    "official_account": "东方集团",
+    "service_account": "东方",
+    "mini_program": "东方优选"
+  },
+  {
+    "rank": 132,
+    "company": "复星国际有限公司",
+    "type": "民企",
+    "official_account": "复星集团",
+    "service_account": "复星",
+    "mini_program": "复星生活"
+  },
+  {
+    "rank": 133,
+    "company": "太平鸟集团有限公司",
+    "type": "民企",
+    "official_account": "太平鸟",
+    "service_account": "太平鸟",
+    "mini_program": "太平鸟官方商城"
+  },
+  {
+    "rank": 134,
+    "company": "森马集团有限公司",
+    "type": "民企",
+    "official_account": "森马",
+    "service_account": "森马",
+    "mini_program": "森马服饰优选"
+  },
+  {
+    "rank": 135,
+    "company": "雅戈尔集团股份有限公司",
+    "type": "民企",
+    "official_account": "雅戈尔",
+    "service_account": "雅戈尔",
+    "mini_program": "雅戈尔会员"
+  },
+  {
+    "rank": 136,
+    "company": "杉杉控股有限公司",
+    "type": "民企",
+    "official_account": "杉杉集团",
+    "service_account": "杉杉",
+    "mini_program": "杉杉奥莱"
+  },
+  {
+    "rank": 137,
+    "company": "海澜集团有限公司",
+    "type": "民企",
+    "official_account": "海澜之家",
+    "service_account": "海澜",
+    "mini_program": "海澜优选"
+  },
+  {
+    "rank": 138,
+    "company": "恒安集团有限公司",
+    "type": "民企",
+    "official_account": "恒安集团",
+    "service_account": "恒安",
+    "mini_program": "恒安生活家"
+  },
+  {
+    "rank": 139,
+    "company": "玖龙纸业（控股）有限公司",
+    "type": "民企",
+    "official_account": "玖龙纸业",
+    "service_account": "玖龙",
+    "mini_program": "玖龙产业"
+  },
+  {
+    "rank": 140,
+    "company": "理文造纸有限公司",
+    "type": "民企",
+    "official_account": "理文造纸",
+    "service_account": "理文",
+    "mini_program": "理文资讯"
+  },
+  {
+    "rank": 141,
+    "company": "中国铁路物资集团有限公司",
+    "type": "央企",
+    "official_account": "中铁物资",
+    "service_account": "中铁物资",
+    "mini_program": "中铁物资商城"
+  },
+  {
+    "rank": 142,
+    "company": "中国储备粮管理集团有限公司",
+    "type": "央企",
+    "official_account": "中储粮",
+    "service_account": "中储粮",
+    "mini_program": "中储粮优选"
+  },
+  {
+    "rank": 143,
+    "company": "中国供销集团有限公司",
+    "type": "央企",
+    "official_account": "中国供销",
+    "service_account": "供销",
+    "mini_program": "供销优选商城"
+  },
+  {
+    "rank": 144,
+    "company": "中国农业发展集团有限公司",
+    "type": "央企",
+    "official_account": "中农发集团",
+    "service_account": "中农发",
+    "mini_program": "中农发生鲜"
+  },
+  {
+    "rank": 145,
+    "company": "中国林业集团有限公司",
+    "type": "央企",
+    "official_account": "中林集团",
+    "service_account": "中林",
+    "mini_program": "中林生态"
+  },
+  {
+    "rank": 146,
+    "company": "中国黄金集团有限公司",
+    "type": "央企",
+    "official_account": "中国黄金",
+    "service_account": "中国黄金",
+    "mini_program": "中国黄金珠宝"
+  },
+  {
+    "rank": 147,
+    "company": "中国白银集团有限公司",
+    "type": "民企",
+    "official_account": "中国白银",
+    "service_account": "白银",
+    "mini_program": "白银珠宝商城"
+  },
+  {
+    "rank": 148,
+    "company": "老凤祥股份有限公司",
+    "type": "地方国企",
+    "official_account": "老凤祥",
+    "service_account": "老凤祥",
+    "mini_program": "老凤祥珠宝"
+  },
+  {
+    "rank": 149,
+    "company": "周大福珠宝集团有限公司",
+    "type": "民企",
+    "official_account": "周大福",
+    "service_account": "周大福",
+    "mini_program": "周大福官方商城"
+  },
+  {
+    "rank": 150,
+    "company": "周生生集团国际有限公司",
+    "type": "民企",
+    "official_account": "周生生",
+    "service_account": "周生生",
+    "mini_program": "周生生珠宝"
+  },
+  {
+    "rank": 151,
+    "company": "山东太阳控股集团有限公司",
+    "type": "民企",
+    "official_account": "太阳控股",
+    "service_account": "太阳",
+    "mini_program": "太阳纸业生活"
+  },
+  {
+    "rank": 152,
+    "company": "山东东明石化集团有限公司",
+    "type": "民企",
+    "official_account": "东明石化",
+    "service_account": "东明石化",
+    "mini_program": "东明加油"
+  },
+  {
+    "rank": 153,
+    "company": "浙江荣盛控股集团有限公司",
+    "type": "民企",
+    "official_account": "荣盛控股",
+    "service_account": "荣盛石化",
+    "mini_program": "荣盛产业服务"
+  },
+  {
+    "rank": 154,
+    "company": "浙江恒逸集团有限公司",
+    "type": "民企",
+    "official_account": "恒逸集团",
+    "service_account": "恒逸",
+    "mini_program": "恒逸生活"
+  },
+  {
+    "rank": 155,
+    "company": "浙江桐昆控股集团有限公司",
+    "type": "民企",
+    "official_account": "桐昆集团",
+    "service_account": "桐昆",
+    "mini_program": "桐昆化纤服务"
+  },
+  {
+    "rank": 156,
+    "company": "广州越秀集团股份有限公司",
+    "type": "地方国企",
+    "official_account": "越秀集团",
+    "service_account": "越秀",
+    "mini_program": "越秀美好生活"
+  },
+  {
+    "rank": 157,
+    "company": "深圳华侨城集团有限公司",
+    "type": "央企",
+    "official_account": "华侨城",
+    "service_account": "华侨城",
+    "mini_program": "华侨城文旅"
+  },
+  {
+    "rank": 158,
+    "company": "深圳市投资控股有限公司",
+    "type": "地方国企",
+    "official_account": "深投控",
+    "service_account": "深投控",
+    "mini_program": "深投产业服务"
+  },
+  {
+    "rank": 159,
+    "company": "上海临港经济发展集团有限公司",
+    "type": "地方国企",
+    "official_account": "临港集团",
+    "service_account": "临港",
+    "mini_program": "临港园区服务"
+  },
+  {
+    "rank": 160,
+    "company": "上海申能（集团）有限公司",
+    "type": "地方国企",
+    "official_account": "申能集团",
+    "service_account": "申能",
+    "mini_program": "申能能源服务"
+  },
+  {
+    "rank": 161,
+    "company": "广州交通投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "广州交投",
+    "service_account": "交投",
+    "mini_program": "高速通行服务"
+  },
+  {
+    "rank": 162,
+    "company": "江苏省国信集团有限公司",
+    "type": "地方国企",
+    "official_account": "国信集团",
+    "service_account": "国信",
+    "mini_program": "国信生活服务"
+  },
+  {
+    "rank": 163,
+    "company": "江苏省盐业集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "江苏盐业",
+    "service_account": "盐业",
+    "mini_program": "盐品优选商城"
+  },
+  {
+    "rank": 164,
+    "company": "浙江省交通投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "浙江交投",
+    "service_account": "交投",
+    "mini_program": "浙里高速"
+  },
+  {
+    "rank": 165,
+    "company": "浙江省能源集团有限公司",
+    "type": "地方国企",
+    "official_account": "浙能集团",
+    "service_account": "浙能",
+    "mini_program": "浙能生活"
+  },
+  {
+    "rank": 166,
+    "company": "安徽省交通控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "安徽交控",
+    "service_account": "交控",
+    "mini_program": "皖通高速"
+  },
+  {
+    "rank": 167,
+    "company": "福建省投资开发集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "福建投发",
+    "service_account": "投发",
+    "mini_program": "闽投生活"
+  },
+  {
+    "rank": 168,
+    "company": "江西省投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "江西投发",
+    "service_account": "投发",
+    "mini_program": "赣投服务"
+  },
+  {
+    "rank": 169,
+    "company": "江西省交通投资集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "江西交投",
+    "service_account": "交投",
+    "mini_program": "赣高速通行"
+  },
+  {
+    "rank": 170,
+    "company": "湖南省湘钢集团有限公司",
+    "type": "地方国企",
+    "official_account": "湘钢集团",
+    "service_account": "湘钢",
+    "mini_program": "湘钢在线"
+  },
+  {
+    "rank": 171,
+    "company": "湖南省华菱钢铁股份有限公司",
+    "type": "地方国企",
+    "official_account": "华菱钢铁",
+    "service_account": "华菱",
+    "mini_program": "华菱产业服务"
+  },
+  {
+    "rank": 172,
+    "company": "广东省广新控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "广新集团",
+    "service_account": "广新",
+    "mini_program": "广新生活"
+  },
+  {
+    "rank": 173,
+    "company": "广东省交通集团有限公司",
+    "type": "地方国企",
+    "official_account": "广东交通集团",
+    "service_account": "交通",
+    "mini_program": "粤通卡"
+  },
+  {
+    "rank": 174,
+    "company": "广西投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "广投集团",
+    "service_account": "广投",
+    "mini_program": "广投生活服务"
+  },
+  {
+    "rank": 175,
+    "company": "广西交通投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "广西交投",
+    "service_account": "交投",
+    "mini_program": "八桂高速"
+  },
+  {
+    "rank": 176,
+    "company": "四川华西集团有限公司",
+    "type": "地方国企",
+    "official_account": "华西集团",
+    "service_account": "华西",
+    "mini_program": "华西建工服务"
+  },
+  {
+    "rank": 177,
+    "company": "四川铁路产业投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "四川铁投",
+    "service_account": "铁投",
+    "mini_program": "蜀道通行服务"
+  },
+  {
+    "rank": 178,
+    "company": "重庆建工投资控股有限责任公司",
+    "type": "地方国企",
+    "official_account": "重庆建工",
+    "service_account": "建工",
+    "mini_program": "渝建服务平台"
+  },
+  {
+    "rank": 179,
+    "company": "重庆化医控股集团有限公司",
+    "type": "地方国企",
+    "official_account": "化医集团",
+    "service_account": "化医",
+    "mini_program": "化医健康生活"
+  },
+  {
+    "rank": 180,
+    "company": "甘肃省电力投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "甘肃电投",
+    "service_account": "电投",
+    "mini_program": "陇能生活服务"
+  },
+  {
+    "rank": 181,
+    "company": "河北省建设投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "河北建投",
+    "service_account": "建投",
+    "mini_program": "冀投生活"
+  },
+  {
+    "rank": 182,
+    "company": "山西省建设投资集团有限公司",
+    "type": "地方国企",
+    "official_account": "山西建投",
+    "service_account": "建投",
+    "mini_program": "晋建建工服务"
+  },
+  {
+    "rank": 183,
+    "company": "内蒙古能源集团有限公司",
+    "type": "地方国企",
+    "official_account": "内蒙能源",
+    "service_account": "能源",
+    "mini_program": "蒙能生活服务"
+  },
+  {
+    "rank": 184,
+    "company": "吉林亚泰（集团）股份有限公司",
+    "type": "民企",
+    "official_account": "亚泰集团",
+    "service_account": "亚泰",
+    "mini_program": "亚泰健康生活"
+  },
+  {
+    "rank": 185,
+    "company": "黑龙江北大荒农垦集团总公司",
+    "type": "央企",
+    "official_account": "北大荒集团",
+    "service_account": "北大荒",
+    "mini_program": "北大荒优选生鲜"
+  },
+  {
+    "rank": 186,
+    "company": "北京首都旅游集团有限责任公司",
+    "type": "地方国企",
+    "official_account": "首旅集团",
+    "service_account": "首旅",
+    "mini_program": "首旅旅行"
+  },
+  {
+    "rank": 187,
+    "company": "北京金茂集团股份有限公司",
+    "type": "央企",
+    "official_account": "中国金茂",
+    "service_account": "金茂",
+    "mini_program": "金茂生活家"
+  },
+  {
+    "rank": 188,
+    "company": "保利发展控股集团股份有限公司",
+    "type": "央企",
+    "official_account": "保利发展",
+    "service_account": "保利",
+    "mini_program": "保利云上生活"
+  },
+  {
+    "rank": 189,
+    "company": "远洋控股集团（中国）有限公司",
+    "type": "央企",
+    "official_account": "远洋集团",
+    "service_account": "远洋",
+    "mini_program": "远洋生活家"
+  },
+  {
+    "rank": 190,
+    "company": "华润置地有限公司",
+    "type": "央企",
+    "official_account": "华润置地",
+    "service_account": "置地",
+    "mini_program": "华润万象城"
+  },
+  {
+    "rank": 191,
+    "company": "金地（集团）股份有限公司",
+    "type": "民企",
+    "official_account": "金地集团",
+    "service_account": "金地",
+    "mini_program": "金地智慧社区"
+  },
+  {
+    "rank": 192,
+    "company": "旭辉控股集团有限公司",
+    "type": "民企",
+    "official_account": "旭辉集团",
+    "service_account": "旭辉",
+    "mini_program": "旭辉美好生活"
+  },
+  {
+    "rank": 193,
+    "company": "正荣地产集团有限公司",
+    "type": "民企",
+    "official_account": "正荣集团",
+    "service_account": "正荣",
+    "mini_program": "正荣邻里生活"
+  },
+  {
+    "rank": 194,
+    "company": "阳光城集团股份有限公司",
+    "type": "民企",
+    "official_account": "阳光城",
+    "service_account": "阳光城",
+    "mini_program": "阳光城智慧生活"
+  },
+  {
+    "rank": 195,
+    "company": "弘阳集团有限公司",
+    "type": "民企",
+    "official_account": "弘阳集团",
+    "service_account": "弘阳",
+    "mini_program": "弘阳商业生活"
+  },
+  {
+    "rank": 196,
+    "company": "宝龙地产控股有限公司",
+    "type": "民企",
+    "official_account": "宝龙地产",
+    "service_account": "宝龙",
+    "mini_program": "宝龙广场生活"
+  },
+  {
+    "rank": 197,
+    "company": "佳兆业集团控股有限公司",
+    "type": "民企",
+    "official_account": "佳兆业集团",
+    "service_account": "佳兆业",
+    "mini_program": "佳兆业智慧社区"
+  },
+  {
+    "rank": 198,
+    "company": "融信集团有限公司",
+    "type": "民企",
+    "official_account": "融信集团",
+    "service_account": "融信",
+    "mini_program": "融信美好生活"
+  },
+  {
+    "rank": 199,
+    "company": "祥生控股集团有限公司",
+    "type": "民企",
+    "official_account": "祥生集团",
+    "service_account": "祥生",
+    "mini_program": "祥生邻里生活"
+  },
+  {
+    "rank": 200,
+    "company": "德信控股集团有限公司",
+    "type": "民企",
+    "official_account": "德信集团",
+    "service_account": "德信",
+    "mini_program": "德信智慧生活"
+  }
+]

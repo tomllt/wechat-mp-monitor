@@ -13,6 +13,8 @@ import { createLocalAuthKey, randomId, sleep } from '../utils.js';
 import { logInfo, logWarn } from '../logger.js';
 import { wechatRequest, mergeCookies, serializeCookies } from './http.js';
 
+export type QrImageFormat = 'png' | 'jpg' | 'unknown';
+
 export type ScanStatus =
   | 'pending'
   | 'confirmed'
@@ -89,14 +91,42 @@ export async function fetchQrCodeImage(cookies: StoredCookie[]): Promise<Buffer>
   return response.data;
 }
 
+export function detectQrImageFormat(buffer: Buffer): QrImageFormat {
+  if (buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    return 'png';
+  }
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'jpg';
+  }
+  return 'unknown';
+}
+
 export function saveQrCode(buffer: Buffer, outputPath?: string): string {
-  const filename = outputPath ?? path.join(qrCodeDir, `qrcode-${Date.now()}.png`);
+  const format = detectQrImageFormat(buffer);
+  const ext = format === 'jpg' ? '.jpg' : '.png';
+  let filename = outputPath ?? path.join(qrCodeDir, `qrcode-${Date.now()}${ext}`);
+
+  if (!outputPath) {
+    filename = path.join(qrCodeDir, `qrcode-${Date.now()}${ext}`);
+  } else {
+    const parsed = path.parse(outputPath);
+    const normalizedExt = parsed.ext.toLowerCase();
+    if ((format === 'jpg' && normalizedExt !== '.jpg' && normalizedExt !== '.jpeg') || (format === 'png' && normalizedExt !== '.png')) {
+      filename = path.join(parsed.dir, `${parsed.name}${ext}`);
+    }
+  }
+
   fs.mkdirSync(path.dirname(filename), { recursive: true });
   fs.writeFileSync(filename, buffer);
   return filename;
 }
 
 export function renderQrPngToTerminal(buffer: Buffer): void {
+  if (detectQrImageFormat(buffer) !== 'png') {
+    logWarn('终端二维码渲染跳过: 微信返回的二维码不是 PNG，已按真实格式保存到文件');
+    return;
+  }
+
   let image: PNG;
   try {
     image = PNG.sync.read(buffer);

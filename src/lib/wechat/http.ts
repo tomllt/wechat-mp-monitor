@@ -1,5 +1,6 @@
 import { DEFAULT_TIMEOUT_MS, USER_AGENT, WECHAT_ORIGIN, WECHAT_REFERER } from '../config.js';
 import { globalServicePool } from '../worker-proxy-pool.js';
+import { globalDownloadRouteController } from './download-route-controller.js';
 import type { StoredCookie } from '../types.js';
 
 /**
@@ -124,7 +125,8 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
 
   // 仅当明确设置 useDownloadService 时才使用 Worker 下载服务
   // 仅限文章正文下载使用，其他请求（登录、获取列表等）直接请求
-  if (options.useDownloadService) {
+  const canUseDownloadService = options.useDownloadService && globalDownloadRouteController.shouldUseService();
+  if (canUseDownloadService) {
     serviceUsed = globalServicePool.getBestService();
     if (serviceUsed) {
       // Worker 是查询参数驱动的定制文章下载服务
@@ -161,6 +163,7 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
     // 记录服务成功
     if (serviceUsed) {
       globalServicePool.recordSuccess(serviceUsed);
+      globalDownloadRouteController.recordServiceSuccess();
     }
 
     return {
@@ -174,6 +177,7 @@ export async function wechatRequest<T = unknown>(options: WechatRequestOptions):
     // 记录服务失败
     if (serviceUsed) {
       globalServicePool.recordFailure(serviceUsed);
+      globalDownloadRouteController.recordServiceNetworkFailure();
     }
     throw error;
   } finally {

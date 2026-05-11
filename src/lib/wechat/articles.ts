@@ -12,7 +12,8 @@ import {
   upsertArticle,
 } from '../storage/db.js';
 import type { ActiveAuthSession, AppMsgEx, AppMsgPublishResponse, ArticleRow } from '../types.js';
-import { globalDownloader } from '../concurrent-downloader.js';
+import { ConcurrentDownloader } from '../concurrent-downloader.js';
+import { BloomFilter } from '../bloom-filter.js';
 import { validateActiveSession, getSessionCookies } from './auth.js';
 import { ingestArticleHtml, type IngestOptions } from './article-html.js';
 import { wechatRequest } from './http.js';
@@ -126,8 +127,8 @@ export async function syncAccount(identifier: string, options: SyncOptions = {})
   const itemId = createSyncRunItem(runId, fakeid, nickname);
 
   const concurrency = options.concurrency ?? getConcurrency();
-  const downloader = concurrency > 0 
-    ? globalDownloader 
+  const downloader = concurrency > 0
+    ? new ConcurrentDownloader(concurrency)
     : { submit: <T>(fn: () => Promise<T>) => fn() };
 
   let begin = 0;
@@ -138,6 +139,8 @@ export async function syncAccount(identifier: string, options: SyncOptions = {})
   let latestSeenCreateTime = lastSeenCreateTime;
   let pageHasNewer = true;
   const contentQueue: ArticleRow[] = [];
+  const articleBloom = new BloomFilter();
+  const contentQueueBloom = new BloomFilter();
 
   try {
     // Step 1: 抓取文章元数据（串行，避免风控）
@@ -153,6 +156,12 @@ export async function syncAccount(identifier: string, options: SyncOptions = {})
       pageHasNewer = false;
 
       for (const article of articles) {
+        const articleKey = `${fakeid}:${article.aid}`;
+        if (articleBloom.has(articleKey)) {
+          continue;
+        }
+        articleBloom.add(articleKey);
+
         if (article.create_time > latestSeenCreateTime) {
           latestSeenCreateTime = article.create_time;
         }
@@ -169,7 +178,11 @@ export async function syncAccount(identifier: string, options: SyncOptions = {})
         if (!options.skipContent) {
           const row = getArticleByKeys(fakeid, article.aid);
           if (row && row.content_status !== 'ready') {
-            contentQueue.push(row);
+            const queueKey = `${row.fakeid}:${row.aid}`;
+            if (!contentQueueBloom.has(queueKey)) {
+              contentQueueBloom.add(queueKey);
+              contentQueue.push(row);
+            }
           }
         }
       }

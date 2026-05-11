@@ -177,6 +177,13 @@ export function getWatchAccount(identifier: string): Record<string, unknown> | n
   ) as Record<string, unknown> | null;
 }
 
+export function getWatchAccountBySourceKeyword(keyword: string): Record<string, unknown> | null {
+  return (
+    getDb().prepare('SELECT * FROM watch_account WHERE source_keyword = ? LIMIT 1').get(keyword) ??
+    null
+  ) as Record<string, unknown> | null;
+}
+
 export function createSyncRun(status = 'running'): number {
   const result = getDb()
     .prepare('INSERT INTO sync_run (started_at, status, notes) VALUES (?, ?, NULL)')

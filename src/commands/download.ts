@@ -3,7 +3,7 @@ import { getArticleByKeys, getArticlesMissingContent, getWatchAccount } from '..
 import { validateActiveSession, getSessionCookies } from '../lib/wechat/auth.js';
 import { ingestArticleHtml } from '../lib/wechat/article-html.js';
 import { getConcurrency, getAllWorkerServices } from '../lib/config.js';
-import { globalDownloader } from '../lib/concurrent-downloader.js';
+import { ConcurrentDownloader } from '../lib/concurrent-downloader.js';
 import { globalServicePool } from '../lib/worker-proxy-pool.js';
 
 export function registerDownloadCommand(program: Command): void {
@@ -71,7 +71,7 @@ export function registerDownloadCommand(program: Command): void {
 
       const concurrency = options.concurrency ? Number(options.concurrency) : undefined;
       const downloader = concurrency && concurrency > 0
-        ? globalDownloader
+        ? new ConcurrentDownloader(concurrency)
         : { submit: <T>(fn: () => Promise<T>) => fn() };
 
       let success = 0;

@@ -15,8 +15,11 @@ export const WECHAT_ORIGIN = 'https://mp.weixin.qq.com';
 // 微信 Referer
 export const WECHAT_REFERER = 'https://mp.weixin.qq.com/';
 
-// 同步延迟（避免风控）
-export const DEFAULT_SYNC_DELAY_MS = 1000;
+// 搜索公众号间隔（避免风控）
+export const DEFAULT_ACCOUNT_SEARCH_DELAY_MS = 2000;
+
+// 同步文章列表分页延迟（避免风控）
+export const DEFAULT_SYNC_DELAY_MS = 2000;
 
 // 同步分页大小
 export const SYNC_PAGE_SIZE = 20;
@@ -54,8 +57,20 @@ export const DEFAULT_CONCURRENCY = 5;
 // 默认下载超时时间（毫秒）
 export const DEFAULT_DOWNLOAD_TIMEOUT = 30000;
 
-// 下载间隔（避免风控）
+// 默认下载间隔（代理模式）
 export const DEFAULT_DOWNLOAD_INTERVAL_MS = 0;
+
+// 直连降频下载间隔（当代理长时间不可用或被风控时）
+export const DIRECT_DOWNLOAD_INTERVAL_MS = 3000;
+
+// 触发退回直连所需的连续代理网络失败次数
+export const SERVICE_NETWORK_FAILURES_BEFORE_DIRECT = 6;
+
+// 触发退回直连所需的连续代理风控次数
+export const SERVICE_RISK_HITS_BEFORE_DIRECT = 4;
+
+// 退回直连后的保持时长（毫秒）
+export const DIRECT_MODE_COOLDOWN_MS = 10 * 60 * 1000;
 
 // 默认最大重试次数
 export const DEFAULT_MAX_RETRIES = 3;

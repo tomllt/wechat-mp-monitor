@@ -12,4 +12,8 @@ data/reports/
 .DS_Store
 coverage/
 *.tsbuildinfo
+__pycache__/
+data/__pycache__/
+test-*.js
+test-*.mjs
 ._*

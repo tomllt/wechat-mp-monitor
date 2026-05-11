@@ -15,7 +15,9 @@ import {
 } from '../lib/filtered-articles.js';
 import { searchAccounts, pickBestAccount } from '../lib/wechat/accounts.js';
 import { syncAllAccounts } from '../lib/wechat/articles.js';
-import { getDb } from '../lib/storage/db.js';
+import { getDb, getWatchAccountBySourceKeyword } from '../lib/storage/db.js';
+import { DEFAULT_ACCOUNT_SEARCH_DELAY_MS } from '../lib/config.js';
+import { BloomFilter } from '../lib/bloom-filter.js';
 import * as path from 'path';
 
 export interface KeywordDownloadOptions {
@@ -93,31 +95,64 @@ export function registerKeywordDownloadCommand(program: Command): void {
     // Step 3: 搜索公众号获取 fakeid
     console.log('\n🔍 Step 3: 搜索公众号获取 fakeid...');
     const watchAccounts: Array<{ fakeid: string; nickname: string; account: WeChatAccount }> = [];
-    
+    const accountBloom = new BloomFilter();
+    const fakeidBloom = new BloomFilter();
+
     for (const acc of accounts) {
+      const officialName = (acc.officialAccount ?? '').trim();
+      if (!officialName) {
+        continue;
+      }
+      const accountKey = officialName.toLowerCase();
+
       try {
-        const results = await searchAccounts(acc.officialAccount!);
-        if (results && results.length > 0) {
-          const best = pickBestAccount(results, acc.officialAccount!);
-          if (best) {
+        const cached = getWatchAccountBySourceKeyword(officialName);
+        if (cached?.fakeid && cached?.nickname) {
+          const fakeid = String(cached.fakeid);
+          if (!fakeidBloom.has(fakeid)) {
+            fakeidBloom.add(fakeid);
             watchAccounts.push({
-              fakeid: best.fakeid,
-              nickname: best.nickname,
-              account: acc
+              fakeid,
+              nickname: String(cached.nickname),
+              account: acc,
             });
-            console.log(`   ✅ ${acc.officialAccount} -> ${best.nickname} (fakeid: ${best.fakeid.substring(0, 10)}...)`);
+          }
+          accountBloom.add(accountKey);
+          console.log(`   ♻️  ${officialName} -> ${String(cached.nickname)} (复用本地缓存)`);
+          continue;
+        }
+
+        if (accountBloom.has(accountKey)) {
+          console.log(`   ♻️  ${officialName} 已处理，跳过重复搜索`);
+          continue;
+        }
+
+        const results = await searchAccounts(officialName);
+        accountBloom.add(accountKey);
+
+        if (results && results.length > 0) {
+          const best = pickBestAccount(results, officialName);
+          if (best) {
+            if (!fakeidBloom.has(best.fakeid)) {
+              fakeidBloom.add(best.fakeid);
+              watchAccounts.push({
+                fakeid: best.fakeid,
+                nickname: best.nickname,
+                account: acc
+              });
+            }
+            console.log(`   ✅ ${officialName} -> ${best.nickname} (fakeid: ${best.fakeid.substring(0, 10)}...)`);
           } else {
-            console.log(`   ⚠️  ${acc.officialAccount} 未找到匹配结果`);
+            console.log(`   ⚠️  ${officialName} 未找到匹配结果`);
           }
         } else {
-          console.log(`   ⚠️  ${acc.officialAccount} 无搜索结果`);
+          console.log(`   ⚠️  ${officialName} 无搜索结果`);
         }
       } catch (error: any) {
-        console.log(`   ❌ ${acc.officialAccount} 搜索失败: ${error.message}`);
+        console.log(`   ❌ ${officialName} 搜索失败: ${error.message}`);
       }
-      
-      // 避免请求太快
-      await new Promise(r => setTimeout(r, 500));
+
+      await new Promise(r => setTimeout(r, DEFAULT_ACCOUNT_SEARCH_DELAY_MS));
     }
 
     if (watchAccounts.length === 0) {
