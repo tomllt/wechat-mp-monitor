@@ -4,7 +4,7 @@
  * 部署时间: 2026-05-11
  * 节点数量: 20
  * 版本: v2.0 (100% 兼容 wechat-article-exporter 官方标准)
- * 域名: wechat-art.xyz
+ * 域名: new00~new19.wechat-art.xyz
  * Worker: wechat-proxy (1个Worker绑定20个自定义域名 - 官方推荐方案)
  * 
  * 📋 官方标准调用协议:
@@ -22,26 +22,26 @@
  */
 
 export const PRIVATE_PROXY_LIST: string[] = [
-  'https://00.wechat-art.xyz',
-  'https://01.wechat-art.xyz',
-  'https://02.wechat-art.xyz',
-  'https://03.wechat-art.xyz',
-  'https://04.wechat-art.xyz',
-  'https://05.wechat-art.xyz',
-  'https://06.wechat-art.xyz',
-  'https://07.wechat-art.xyz',
-  'https://08.wechat-art.xyz',
-  'https://09.wechat-art.xyz',
-  'https://10.wechat-art.xyz',
-  'https://11.wechat-art.xyz',
-  'https://12.wechat-art.xyz',
-  'https://13.wechat-art.xyz',
-  'https://14.wechat-art.xyz',
-  'https://15.wechat-art.xyz',
-  'https://16.wechat-art.xyz',
-  'https://17.wechat-art.xyz',
-  'https://18.wechat-art.xyz',
-  'https://19.wechat-art.xyz',
+  'https://new00.wechat-art.xyz',
+  'https://new01.wechat-art.xyz',
+  'https://new02.wechat-art.xyz',
+  'https://new03.wechat-art.xyz',
+  'https://new04.wechat-art.xyz',
+  'https://new05.wechat-art.xyz',
+  'https://new06.wechat-art.xyz',
+  'https://new07.wechat-art.xyz',
+  'https://new08.wechat-art.xyz',
+  'https://new09.wechat-art.xyz',
+  'https://new10.wechat-art.xyz',
+  'https://new11.wechat-art.xyz',
+  'https://new12.wechat-art.xyz',
+  'https://new13.wechat-art.xyz',
+  'https://new14.wechat-art.xyz',
+  'https://new15.wechat-art.xyz',
+  'https://new16.wechat-art.xyz',
+  'https://new17.wechat-art.xyz',
+  'https://new18.wechat-art.xyz',
+  'https://new19.wechat-art.xyz',
 ];
 
 export default PRIVATE_PROXY_LIST;

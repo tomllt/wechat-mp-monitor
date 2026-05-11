@@ -8,7 +8,7 @@ import type { StoredCookie } from '../types.js';
  * 
  * - 不能使用 workers.dev + 代理方案
  * - 所有 Worker 访问必须通过自定义域名
- * - 当前配置: 00.wechat-art.xyz ~ 19.wechat-art.xyz
+ * - 当前配置: new00.wechat-art.xyz ~ new19.wechat-art.xyz
  */
 
 export interface WechatRequestOptions {

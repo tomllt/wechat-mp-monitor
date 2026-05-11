@@ -366,6 +366,7 @@ curl -I https://cloudflare.com  # 应该正常返回
 - 🟡 **列表抓取**：可配置，但默认直连（当前固定 5s 请求间隔，并对重复文章做运行内去重）
 - 🔍 **公众号搜索**：当前固定 15s 请求间隔；优先复用 `watch_account.source_keyword` 已缓存映射，再用 Bloom Filter 做运行内去重，避免重复搜索同名公众号
 - ⚠️ **搜索接口限频经验**：即使已提升到 30s 间隔，在大批量 fresh-login 搜索阶段仍可能触发微信 `200013: freq control`。遇到该错误时，不要误判为登录失效；应优先减少真实搜索次数（命中本地映射优先）、延长搜索节流，并为 `searchAccounts` 单独增加退避，而不是只调正文下载并发。
+- 🧪 **阶段化无 Worker 测试**：当需要验证“不要走 Worker”时，必须把三个阶段拆开测：`searchAccounts`、`fetchArticlePage`、`fetchArticleHtml`。实际经验表明：搜索可能被 `200013: freq control` 限频，列表接口可能正常，而正文即使强制直连也可能命中 `env_abnormal`，因此不能用一个阶段的结果代表整条链路。
 
 
 **试错教训**：最初尝试路径转发格式 (`${serviceBaseUrl}/${targetUrl}`) 全部失败，花费 2+ 小时排查后确认必须使用查询参数驱动。
@@ -719,6 +720,57 @@ setupProxy();
 2. 再判断是否大面积命中微信“环境异常”页
 3. 再区分是否为超时中止（`This operation was aborted`）
 4. 若是风控主因，不要盲目继续高并发重试；应降低请求密度或换更稳环境/策略
+
+### 阶段化风控诊断方法（2026-05-11 新增）
+
+当整条流水线失败时，不要笼统归因为“代理坏了”或“微信封了”，应把链路拆成 3 个阶段分别验证：
+
+1. **搜索公众号 (`searchAccounts`)**
+   - 单独测试关键词，例如：`国家电网` / `广东发布`
+   - 若直接返回 `200013: freq control`，说明被微信 **searchbiz 限频**
+   - 这个问题与 Worker 无关；即使清空系统代理、切换正文下载策略，也不会自动消失
+
+2. **获取文章列表 (`fetchArticlePage`)**
+   - 对已知 fakeid 单独拉第一页
+   - 若能返回 20+ 篇，说明列表接口本身可用
+   - 实战中经常出现：**搜索阶段被限频，但列表阶段正常**
+
+3. **下载正文 (`fetchArticleHtml` / `wechatRequest(useDownloadService)`)**
+   - 要分别验证：
+     - 走 Worker 时的结果
+     - 强制直连时的结果（可让 `globalDownloadRouteController.activateDirectMode()` 后再测）
+   - 若 `serviceUsed = null` 仍返回 `env_abnormal`，说明**即使不走 Worker，正文也会被微信风控页拦截**
+
+**已验证的典型组合**：
+- 搜索阶段：`200013: freq control`
+- 列表阶段：正常返回分页数据
+- 正文阶段：无论走 Worker 还是强制直连，都可能返回 `env_abnormal`
+
+**处置原则**：
+- 搜索阶段问题 → 优先减少真实搜索次数、复用本地 `source_keyword -> fakeid` 映射、延长搜索节流、增加搜索专用退避
+- 列表阶段问题 → 再考虑 fakeid 是否错误、登录态是否失效
+- 正文阶段问题 → 再看 Worker / 直连 / 微信风控页，不要把三个阶段混为一谈
+
+### 搜索接口限频退避（2026-05-11 更新）
+
+- 搜索基础间隔已继续提升到 **30s**
+- 命中 `200013: freq control` 时，`keyword-download` 会对搜索阶段执行**指数退避**
+- 当前实现：在 `keyword-download.ts` 的搜索循环里按 `searchDelayMs` 递增，最高退避到 `120s`
+- 即使如此，fresh login + 大批量新关键词场景仍可能被 searchbiz 限流，因此应尽量优先命中本地缓存映射
+
+### Worker / 直连分离验证经验（2026-05-11 新增）
+
+- 清空系统代理环境变量：
+  - `HTTP_PROXY`
+  - `HTTPS_PROXY`
+  - `ALL_PROXY`
+  - 及其小写版本
+  只能证明**系统 HTTP 代理未参与**
+- 但正文下载仍可能继续走 Worker，因为 `wechatRequest(... useDownloadService: true)` 由下载路由控制器决定
+- 若要验证“正文不走 Worker”，应强制：
+  - `globalDownloadRouteController.activateDirectMode(...)`
+  然后检查返回中的 `serviceUsed`
+- 只有当 `serviceUsed = null` 时，才能确认这次正文请求确实没有走 Worker
 
 ### 共享节流 / 退避策略（2026-05-11 更新）
 
